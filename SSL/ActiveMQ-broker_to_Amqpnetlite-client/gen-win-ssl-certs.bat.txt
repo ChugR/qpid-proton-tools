@@ -18,7 +18,8 @@ REM
 REM file: gen-win-ssl-certs.bat
 REM date: 2015-07-01
 REM what: Procedure to create client auth certificate set for an ActiveMQ broker
-REM       and a .NET client. "keytool" is supplied by jdk.
+REM       and an AMQPNet.Lite client. "keytool" is supplied by jdk.
+REM       A user may change TODO: settings to match his setup.
 REM
 REM These files are created:
 REM broker-jks.keystore   BROKER_KEYSTORE
@@ -43,19 +44,21 @@ REM
 REM The password for every store and certificate is "password".
 
 REM All certificates are created in this subfolder
+REM TODO: Define where certificates are stored
 SET CERT_LOC=%CD%\win-ssl-certs
 
 REM Define the CN of the self-signed certificate authority.
-REM This value identifies the CA in the windows cert store.
+REM TODO: Define the CA's CN
 SET CA_CN=reallly-trust-me.org
 
-REM Define the CN of the broker for the broker's cert. 
-REM Typically this is the 'hostname' of the machine on which the activemq broker is running.
+REM Define the CN of the broker.
+REM This is the fqdn or hostname of the machine on which the ActiveMQ broker is running.
+REM TODO: Define the broker CN:
 SET BROKER_CN=somehost.example.com
 
 REM Define the CN of the client. A client presenting this certificate will be authenticated
-REM as this user name in the ActiveMQ broker. Note that the client must still present
-REM the correct username and password in the connection Address.
+REM as this user name in the ActiveMQ broker.
+REM TODO: Define the client CN
 SET CLIENT_CN=client
 
 REM Define file names
@@ -78,18 +81,18 @@ SET KEY_PASSWORD=-keypass password
 
 REM Recreate entire cert folder
 rmdir /s /q %CERT_LOC%
+timeout /t 1 /nobreak > nul
 mkdir       %CERT_LOC%
 pushd       %CERT_LOC%
 
-REM Create a key and self-signed certificate, the CA certificate authority, 
-REM to sign certificate requests
-REM -----------------------------------------------------------------------
+REM Create the certificate authority CA
+REM -----------------------------------
 keytool %CA_STORE% %KEY_PASSWORD% -alias ca -genkey ^
         -dname "O=Reallly Trust Me Inc.,CN=%CA_CN%" -validity 9999 -ext bc:c=ca:true
 keytool %CA_STORE%                -alias ca -exportcert -rfc > %CA_CERT%
 
-REM Create a key pair for the broker, and sign it with the CA
-REM ---------------------------------------------------------
+REM Create a key pair for the broker and sign it with the CA
+REM --------------------------------------------------------
 keytool %BROKER_STORE% %KEY_PASSWORD% -alias broker -genkey -keyalg RSA -keysize 2048 ^
         -dname "O=Broker,CN=%BROKER_CN%" -validity 9999 -ext bc=ca:false -ext eku=serverAuth
 
@@ -97,14 +100,13 @@ keytool %BROKER_STORE% -alias broker -certreq    -file %BROKER_CERT_SIGN_REQ%
 keytool %CA_STORE%     -alias ca -gencert -rfc -infile %BROKER_CERT_SIGN_REQ% ^
         -outfile %BROKER_CERT% -ext bc=ca:false -ext eku=serverAuth
 
-REM Import CA and broker certificates into broker keystore:
-REM -------------------------------------------------------
+REM Import CA and broker certificates into broker keystore
+REM ------------------------------------------------------
 keytool %BROKER_STORE% %KEY_PASSWORD% -importcert -alias ca     -file     %CA_CERT% -noprompt
 keytool %BROKER_STORE% %KEY_PASSWORD% -importcert -alias broker -file %BROKER_CERT%
 
-REM Create a key pair for the client. Create sign request and sign it 
-REM with the CA creating client cert file:
-REM -----------------------------------------------------------------
+REM Create a key pair for the client and sign it with the CA
+REM --------------------------------------------------------
 keytool %CLIENT_STORE% %KEY_PASSWORD% -alias client -genkey -keyalg RSA -keysize 2048 ^
         -dname "O=Client,CN=%CLIENT_CN%" -validity 9999 -ext bc=ca:false -ext eku=clientAuth
 
@@ -112,19 +114,19 @@ keytool %CLIENT_STORE% -alias client -certreq    -file %CLIENT_CERT_SIGN_REQ%
 keytool %CA_STORE%     -alias ca -gencert -rfc -infile %CLIENT_CERT_SIGN_REQ% ^
         -outfile %CLIENT_CERT% -ext bc=ca:false -ext eku=clientAuth
 
-REM Import CA and client certs into client keystore:
-REM ------------------------------------------------
+REM Import CA and client certs into client keystore
+REM -----------------------------------------------
 keytool %CLIENT_STORE% %KEY_PASSWORD% -importcert -alias ca     -file     %CA_CERT% -noprompt
 keytool %CLIENT_STORE% %KEY_PASSWORD% -importcert -alias client -file %CLIENT_CERT% -noprompt
 
-REM Export client private key and chain of trust certs to Personal Information Exchange .p12:
-REM -----------------------------------------------------------------------------------------
+REM Export client private key and cert trust chain to Personal Information Exchange .p12
+REM ------------------------------------------------------------------------------------
 keytool -v -importkeystore -srckeystore %CLIENT_KEYSTORE% -srcstorepass password ^
         -srcalias client -destkeystore %CLIENT_PRIVATE_KEYS% -deststorepass password ^
 		-destkeypass password -deststoretype PKCS12 -destalias client
 
-REM Create a trust store for the broker, import the CA cert:
-REM --------------------------------------------------------
+REM Create a trust store for the broker, import the CA cert
+REM -------------------------------------------------------
 keytool -storetype jks -keystore %BROKER_TRUSTSTORE% -storepass password %KEY_PASSWORD% ^
         -importcert -alias     ca -file     %CA_CERT% -noprompt
 
