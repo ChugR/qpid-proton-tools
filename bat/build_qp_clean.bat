@@ -23,6 +23,7 @@ REM
 :DelDir
 echo DelDir: Deleting %1.
 rmdir /s /q %1
+timeout /t 1 /nobreak > nul
 echo DelDir: Checking if %1 still exists
 if exist %1\nul (echo "%1 still exists. Type Ctrl-C to exit and fix %1" && pause && goto :eof)
 goto :eof

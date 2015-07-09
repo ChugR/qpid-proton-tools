@@ -20,7 +20,7 @@
 
 ::
 :: build_proton.bat
-:: Version 1.4 2015-05-21
+:: Version 1.5 2015-07-09
 ::
 :: Usage: build_proton.bat INSTALL_ROOT_PATH [2008|2010|2012|2013 x64|x86 [any         [any]]]
 ::                         %1                 %2                  %3       %4           %5
@@ -181,8 +181,8 @@ if "%vsname%"=="2013" (
     )
 )
 if "%proton_arch%"=="" (
-	echo Arch not recognized : %arch%
-	goto :eof
+    echo Arch not recognized : %arch%
+    goto :eof
 )
 
 @echo off
@@ -231,6 +231,7 @@ REM
 :MakeNewDir
 echo MakeNewDir: Start recreating %1. Delete %1
 rmdir /s /q %1
+timeout /t 1 /nobreak > nul
 echo MakeNewDir: Checking if %1 still exists
 if exist %1\nul (echo "%1 still exists. Type Ctrl-C to exit and fix %1" && pause && goto :eof)
 echo MakeNewDir: Create %1

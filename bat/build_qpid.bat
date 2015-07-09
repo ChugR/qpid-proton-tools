@@ -20,7 +20,7 @@
 
 ::
 :: build_qpid.bat
-:: Version 1.4 2015-06-25
+:: Version 1.5 2015-07-09
 ::
 :: Usage: build_qpid.bat [2008|2010|2012|2013 x64|x86 [any        ]]
 ::                        %1                  %2       %3
@@ -126,8 +126,12 @@ if "%vsname%"=="2012" (
     )
 )
 if "%vsname%"=="2013" (
-    echo "ERROR: Install a boost for VS2013, please"
-    exit
+    if "%arch%" == "x86" (
+        SET MY_BOOST_ROOT=c:\boost
+    ) else (
+        echo "ERROR: Install a boost for VS2013 x64, please"
+        exit
+    )
 )
 
 @echo off
@@ -153,6 +157,7 @@ cd %build_dir%
 call make-install
 
 :: Copy the qpid-proton dlls from install dir into build\src\Debug
+
 copy ..\install_%vsname%_%arch%\bin\qpid-proton*.dll .\src\Debug\
 copy ..\install_%vsname%_%arch%\bin\boost*.dll       .\src\Debug\
 goto :eof
@@ -163,6 +168,7 @@ REM
 :MakeNewDir
 echo MakeNewDir: Start recreating %1. Delete %1
 rmdir /s /q %1
+timeout /t 1 /nobreak > nul
 echo MakeNewDir: Checking if %1 still exists
 if exist %1\nul (echo "%1 still exists. Type ^C to exit and fix %1" && pause && goto :eof)
 echo MakeNewDir: Create %1
