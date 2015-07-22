@@ -30,7 +30,7 @@ to the files at startup.
     The broker needs to have an amqps connector defined with the 
     needClientAuth switch set. 
 
-  <transportConnector name="amqps" uri="amqps://0.0.0.0:5671?needClientAuth=true"/>
+  <transportConnector name="amqps" uri="amqp+ssl://0.0.0.0:5671?needClientAuth=true"/>
 
     Client certificates on client Windows system
 	--------------------------------------------
