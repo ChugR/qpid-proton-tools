@@ -39,10 +39,8 @@
 #
 # Types
 #  primitive
-#  composite: descriptor and 1..n fields
-#  restricted:
-#    enumerations: 1..n choice
-#    id: 0..1 descriptors and 0 fields
+#  described descriptor and 0..n fields
+#  enumerated: 1..n choice
 #
 from __future__ import print_function
 import sys, optparse, os, time
@@ -51,7 +49,7 @@ import xml.etree.ElementTree as ET
 #
 # construct data stores
 typesPrimitive = []
-typesComposite = []
+typesEnumerated = []
 typesDescribed = []
 
 typesAll = []
@@ -64,20 +62,21 @@ class XmlStore():
         self.tree = ET.parse(os.path.join(os.path.dirname(__file__), filename))
         self.root = self.tree.getroot()  # root=Element 'amqp'
         self.trimNamespace(self.root)
+        self.rootName = self.root.get("name")
         self.sections = self.root.findall("section")
         self.types = []
         for section in self.sections:
             ltypes = section.findall("type")
             for type in ltypes:
                 # decorate and categorize each type
-                type.text = section.get("name")
+                type.text = self.rootName + ":" + section.get("name")
                 typesAll.append(type)
                 if type.get("class") == "primitive":
                     typesPrimitive.append(type)
                 else:
                     descr = type.find("descriptor")
                     if descr is None:
-                        typesComposite.append(type)
+                        typesEnumerated.append(type)
                     else:
                         typesDescribed.append(type)
                 provides = type.get("provides")
@@ -117,6 +116,14 @@ def lozenge():
 
 def double_lozenge():
     return lozenge() + lozenge()
+
+def extract_descr_type_code(code):
+    return "0x" + code[19:]
+
+def noNoneString(str):
+    if str:
+        return str
+    return ""
 
 #
 # Open html page header
@@ -192,7 +199,7 @@ def print_toc():
     print("<a href=\"#Types\">Types</a><br>")
     print("%s%s<a href=\"#PrimitiveTypes\">Primitive Types</a><br>" % (nbsp(), nbsp()))
     print("%s%s<a href=\"#DescribedTypes\">Described Types</a><br>" % (nbsp(), nbsp()))
-    print("%s%s<a href=\"#RestrictedTypes\">Restricted Types - Enumerations</a><br>" % (nbsp(), nbsp()))
+    print("%s%s<a href=\"#EnumeratedTypes\">Enumerated Types</a><br>" % (nbsp(), nbsp()))
     print("<hr>")
 
 
@@ -202,6 +209,7 @@ encoding_typenames = []
 encoding_codes = []
 encoding_typemap = {}
 encoding_codemap = {}
+encoding_sectionmap = {}
 
 def compute_primitive_types():
     # create sorted lists for display
@@ -217,6 +225,7 @@ def compute_primitive_types():
                 encoding_codes.append(typecode)
                 encoding_typemap[typename] = enc
                 encoding_codemap[typecode] = enc
+                encoding_sectionmap[typename] = type.text
             else:
                 raise ValueError("duplicate encoding type name: '%s'" % typename)
     encoding_typenames.sort()
@@ -224,12 +233,13 @@ def compute_primitive_types():
 
 def print_primitive_types():
     # print types sorted by class name
-    print("<h4>Primitive Types</h4>")
     print("<a name=\"PrimitiveTypes\"></a>")
+    print("<h4>Primitive Types</h4>")
     print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sby Name<br>" % ("PrimTypeName", lozenge(), nbsp()))
     print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"PrimTypeName\">")
     print("<table>")
     print("<tr>")
+    print(" <th>Section</th>")
     print(" <th>Name</th>")
     print(" <th>Code</th>")
     print(" <th>Category</th>")
@@ -238,19 +248,22 @@ def print_primitive_types():
     for typen in encoding_typenames:
         enc = encoding_typemap[typen]
         print("<tr>")
-        print(" <td>%s</td>" % enc.text)
+        print(" <td>%s</td>" % encoding_sectionmap[typen])
+        print(" <td><strong>%s</strong></td>" % enc.text)
         print(" <td>%s</td>" % enc.get("code"))
         print(" <td>%s</td>" % enc.get("category"))
         print(" <td>%s</td>" % enc.get("width"))
         print("</tr>")
     print("</table>")
     print("</div>")
+    print("<br><br>")
 
     # print types sorted by class code
     print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sby Code<br>" % ("PrimTypeCode", lozenge(), nbsp()))
     print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"PrimTypeCode\">")
     print("<table>")
     print("<tr>")
+    print(" <th>Section</th>")
     print(" <th>Name</th>")
     print(" <th>Code</th>")
     print(" <th>Category</th>")
@@ -259,27 +272,158 @@ def print_primitive_types():
     for code in encoding_codes:
         enc = encoding_codemap[code]
         print("<tr>")
-        print(" <td>%s</td>" % enc.text)
+        print(" <td>%s</td>" % encoding_sectionmap[typen])
+        print(" <td><strong>%s</strong></td>" % enc.text)
         print(" <td>%s</td>" % enc.get("code"))
         print(" <td>%s</td>" % enc.get("category"))
         print(" <td>%s</td>" % enc.get("width"))
         print("</tr>")
     print("</table>")
     print("</div>")
+    print("<br><br>")
 
 
+#
+#
+descr_longnames = []   # "transport:performatives open"
+descr_codes = []       # "0x10"
+descr_codemap = {}     # map[longname] = "0x10"
+descr_mapcode = {}     # map[code] = longname
+descr_typemap = {}     # map[longname] = type node
+descr_fieldmap = {}    # map[longname] = [list-of-field-nodes]
+descr_fieldindex = []  # list of (fieldname, field's_parent_type_node)
+# TODO: get the provides info
+def compute_described_types():
+    for type in typesDescribed:
+        descriptor = type.find("descriptor")
+        descr_name = descriptor.get("name")
+        descr_code = extract_descr_type_code(descriptor.get("code"))
+        fields = type.find("field")
+        longname = type.text + " " + type.get("name")
+        descr_longnames.append(longname)
+        descr_codes.append(descr_code)
+        descr_codemap[longname] = descr_code
+        descr_mapcode[descr_code] = longname
+        descr_typemap[longname] = type
+        if fields is not None:
+            descr_fieldmap[longname] = fields
+            for field in fields:
+                descr_fieldindex.append( (field.get("name"), type) )
+    descr_codes.sort()
+
+
+#
+#
+def print_described_types():
+    print("<a name=\"DescribedTypes\"></a>")
+    print("<h4>Described Types</h4>")
+    print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sDescribed Types<br>" % ("DescrTypes", lozenge(), nbsp()))
+    print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"DescrTypes\">")
+    print("<table>")
+    print("<tr>")
+    print(" <th>Section</th>")
+    print(" <th>Name</th>")
+    print(" <th>Code</th>")
+    print(" <th>Type</th>")
+    print(" <th>Provides</th>")
+    print("</tr>")
+    for code in descr_codes:
+        name = descr_mapcode[code]
+        descr_key = name.split()
+        section = descr_key[0]
+        descr_typename = descr_key[1]
+        type = descr_typemap[name]
+        print("<tr>")
+        print(" <td>%s</td>" % section)
+        print(" <td><a href=\"#DescrType%s\"><strong>%s</strong></a></td>" % (descr_typename, descr_typename))
+        print(" <td>%s</td>" % code)
+        print(" <td>%s</td>" % type.get("source"))
+        print(" <td>%s</td>" % type.get("provides"))
+        print("</tr>")
+    print("</table>")
+    print("<br><br>")
+
+    for code in descr_codes:
+        name = descr_mapcode[code]
+        descr_key = name.split()
+        section = descr_key[0]
+        descr_typename = descr_key[1]
+        type = descr_typemap[name]
+        print("<a name=\"DescrType%s\"></a>" % (descr_typename))
+        print("%s%s<a href=\"javascript:toggle_node('%s')\"> %s </a>%s %s<strong>%s</strong><br>" % \
+              (nbsp(), nbsp(), "DT"+descr_typename, lozenge(), nbsp(), section + " - ", descr_typename))
+        print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"%s\">" % ("DT"+descr_typename))
+        print("<table>")
+        print("<tr>")
+        print(" <th>Tag</th>")
+        print(" <th>Name</th>")
+        print(" <th>Type</th>")
+        print(" <th>Requires</th>")
+        print(" <th>Default</th>")
+        print(" <th>Mandatory</th>")
+        print(" <th>Multiple</th>")
+        print("</tr>")
+        for child in type:
+            childtype = ""
+            if child.tag == "field":
+                childtype = child.get("type")            
+            print("<tr>")
+            print(" <td>%s</td>" % child.tag)
+            print(" <td>%s</td>" % child.get("name"))
+            print(" <td>%s</td>" % childtype)
+            print(" <td>%s</td>" % noNoneString(child.get("requires")))
+            print(" <td>%s</td>" % noNoneString(child.get("default")))
+            print(" <td>%s</td>" % noNoneString(child.get("mandatory")))
+            print(" <td>%s</td>" % noNoneString(child.get("multiple")))
+            print("</tr>")
+        print("</table>")
+        print("</div>")  # End one described type
+   
+    print("</div>")   # End described type details
+    print("<br><br>")
+
+
+#
+#
+enum_longnames = []    # "messaging:message-format terminus-durability"
+enum_typemap = {}      # map[longname] = type node
+enum_choicemap = {}    # map[longname] = [list-of-choice-fields]
+enum_choiceindex = {}  # list of (choicename, choice's_parent_type_node)
+
+def compute_enumerated_types():
+    for type in typesEnumerated:
+        choices = type.find("choice")
+        longname = type.text + " " + type.get("name")
+        enum_longnames.append(longname)
+        enum_typemap[longname] = type
+        if choices is not None:
+            enum_choicemap[longname] = choices
+            for choice in choices:
+                enum_choiceindex.append( (choice.get("name"), type) )
+
+
+def print_enumerated_types():
+    print("<a name=\"EnumeratedTypes\"></a>")
+    print("<h4>Enumerated Types</h4>")
+    print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sEnumerated Types<br>" % ("EnumTypes", lozenge(), nbsp()))
+    print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"EnumTypes\">")
+    for enum in enum_longnames:
+        print("%s<br>" % enum)
+    print("</div>")
+    
 #
 #
 def print_end_body():
     print ("</body>")
     print ("</html>")
 
-
 #
 #
 def main_except(argv):
     # Compute tables and stuff that may be needed by show/hide functions
     compute_primitive_types()
+    compute_described_types()
+    compute_enumerated_types()
 
     # Print the web page
     print_fixed_leading()
@@ -293,6 +437,8 @@ def main_except(argv):
 
     print_toc()
     print_primitive_types()
+    print_described_types()
+    print_enumerated_types()
     print_end_body()
 
 
