@@ -1,0 +1,576 @@
+<?xml version="1.0"?>
+<?xml-stylesheet type="text/xsl" href="amqp.xsl"?>
+
+<!--
+  Copyright Notice
+  ================
+  (c) Copyright Bank of America, N.A., Barclays Bank PLC, Cisco Systems, Credit Suisse, Deutsche
+  Boerse, Envoy Technologies Inc., Goldman Sachs, HCL Technologies Ltd, IIT Software GmbH, iMatix
+  Corporation, INETCO Systems Limited, Informatica Corporation, JPMorgan Chase & Co., Kaazing
+  Corporation, N.A, Microsoft Corporation, my-Channels, Novell, Progress Software, Red Hat Inc.,
+  Software AG, Solace Systems Inc., StormMQ Ltd., Tervela Inc., TWIST Process Innovations Ltd,
+  VMware, Inc., and WS02 Inc.
+  2006-2011. All rights reserved.
+
+  License
+  =======
+
+  Bank of America, N.A., Barclays Bank PLC, Cisco Systems, Credit Suisse, Deutsche Boerse, Goldman
+  Sachs, HCL Technologies Ltd, IIT Software GmbH, INETCO Systems Limited, Informatica Corporation,
+  JPMorgan Chase & Co., Kaazing Corporation, N.A, Microsoft Corporation, my-Channels, Novell,
+  Progress Software, Red Hat Inc., Software AG, Solace Systems Inc., StormMQ Ltd., Tervela Inc.,
+  TWIST Process Innovations Ltd, VMware, Inc., and WS02 Inc. (collectively, the "Authors") each
+  hereby grants to you a worldwide, perpetual, royalty-free, nontransferable, nonexclusive license
+  to (i) copy, display, distribute and implement the Advanced Message Queuing Protocol ("AMQP")
+  Specification and (ii) the Licensed Claims that are held by the Authors, all for the purpose of
+  implementing the Advanced Message Queuing Protocol Specification. Your license and any rights
+  under this Agreement will terminate immediately without notice from any Author if you bring any
+  claim, suit, demand, or action related to the Advanced Message Queuing Protocol Specification
+  against any Author. Upon termination, you shall destroy all copies of the Advanced Message Queuing
+  Protocol Specification in your possession or control.
+
+  As used hereunder, "Licensed Claims" means those claims of a patent or patent application,
+  throughout the world, excluding design patents and design registrations, owned or controlled, or
+  that can be sublicensed without fee and in compliance with the requirements of this Agreement, by
+  an Author or its affiliates now or at any future time and which would necessarily be infringed by
+  implementation of the Advanced Message Queuing Protocol Specification. A claim is necessarily
+  infringed hereunder only when it is not possible to avoid infringing it because there is no
+  plausible non-infringing alternative for implementing the required portions of the Advanced
+  Message Queuing Protocol Specification. Notwithstanding the foregoing, Licensed Claims shall not
+  include any claims other than as set forth above even if contained in the same patent as Licensed
+  Claims; or that read solely on any implementations of any portion of the Advanced Message Queuing
+  Protocol Specification that are not required by the Advanced Message Queuing Protocol
+  Specification, or that, if licensed, would require a payment of royalties by the licensor to
+  unaffiliated third parties. Moreover, Licensed Claims shall not include (i) any enabling
+  technologies that may be necessary to make or use any Licensed Product but are not themselves
+  expressly set forth in the Advanced Message Queuing Protocol Specification (e.g., semiconductor
+  manufacturing technology, compiler technology, object oriented technology, networking technology,
+  operating system technology, and the like); or (ii) the implementation of other published
+  standards developed elsewhere and merely referred to in the body of the Advanced Message Queuing
+  Protocol Specification, or (iii) any Licensed Product and any combinations thereof the purpose or
+  function of which is not required for compliance with the Advanced Message Queuing Protocol
+  Specification. For purposes of this definition, the Advanced Message Queuing Protocol
+  Specification shall be deemed to include both architectural and interconnection requirements
+  essential for interoperability and may also include supporting source code artifacts where such
+  architectural, interconnection requirements and source code artifacts are expressly identified as
+  being required or documentation to achieve compliance with the Advanced Message Queuing Protocol
+  Specification.
+
+  As used hereunder, "Licensed Products" means only those specific portions of products (hardware,
+  software or combinations thereof) that implement and are compliant with all relevant portions of
+  the Advanced Message Queuing Protocol Specification.
+
+  The following disclaimers, which you hereby also acknowledge as to any use you may make of the
+  Advanced Message Queuing Protocol Specification:
+
+  THE ADVANCED MESSAGE QUEUING PROTOCOL SPECIFICATION IS PROVIDED "AS IS," AND THE AUTHORS MAKE NO
+  REPRESENTATIONS OR WARRANTIES, EXPRESS OR IMPLIED, INCLUDING, BUT NOT LIMITED TO, WARRANTIES OF
+  MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, NON-INFRINGEMENT, OR TITLE; THAT THE CONTENTS
+  OF THE ADVANCED MESSAGE QUEUING PROTOCOL SPECIFICATION ARE SUITABLE FOR ANY PURPOSE; NOR THAT THE
+  IMPLEMENTATION OF THE ADVANCED MESSAGE QUEUING PROTOCOL SPECIFICATION WILL NOT INFRINGE ANY THIRD
+  PARTY PATENTS, COPYRIGHTS, TRADEMARKS OR OTHER RIGHTS.
+
+  THE AUTHORS WILL NOT BE LIABLE FOR ANY DIRECT, INDIRECT, SPECIAL, INCIDENTAL OR CONSEQUENTIAL
+  DAMAGES ARISING OUT OF OR RELATING TO ANY USE, IMPLEMENTATION OR DISTRIBUTION OF THE ADVANCED
+  MESSAGE QUEUING PROTOCOL SPECIFICATION.
+
+  The name and trademarks of the Authors may NOT be used in any manner, including advertising or
+  publicity pertaining to the Advanced Message Queuing Protocol Specification or its contents
+  without specific, written prior permission. Title to copyright in the Advanced Message Queuing
+  Protocol Specification will at all times remain with the Authors.
+
+  No other rights are granted by implication, estoppel or otherwise.
+
+  Upon termination of your license or rights under this Agreement, you shall destroy all copies of
+  the Advanced Message Queuing Protocol Specification in your possession or control.
+
+  Trademarks
+  ==========
+  "JPMorgan", "JPMorgan Chase", "Chase", the JPMorgan Chase logo and the Octagon Symbol are
+  trademarks of JPMorgan Chase & Co.
+
+  RED HAT is a registered trademarks of Red Hat, Inc. in the US and other countries.
+
+  Other company, product, or service names may be trademarks or service marks of others.
+
+  Link to full AMQP specification:
+  =================================
+  http://www.amqp.org/confluence/display/AMQP/AMQP+Specification
+-->
+
+<!DOCTYPE amqp SYSTEM "amqp.dtd">
+
+<amqp xmlns="http://www.amqp.org/schema/amqp.xsd"
+      name="transport" label="working version">
+
+  <!-- == Section: transport =================================================================== -->
+
+  <section name="performatives" label="composite types that appear as frame bodies">
+
+    <!-- - Frame: open - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+    <type class="composite" name="open" source="list" provides="frame"
+          label="negotiate Connection parameters">
+
+      <descriptor name="amqp:open:list" code="0x00000000:0x00000010"/>
+
+      <field name="container-id" type="string" mandatory="true"
+             label="the id of the source container"/>
+
+      <field name="hostname" type="string" label="the name of the target host">
+      </field>
+
+      <field name="max-frame-size" type="uint" default="4294967295"
+             label="proposed maximum frame size">
+      </field>
+
+      <field name="channel-max" type="ushort" default="65535"
+             label="the maximum channel number that may be used on the Connection">
+      </field>
+
+      <field name="idle-time-out" type="milliseconds" label="idle time-out">
+      </field>
+
+      <field name="outgoing-locales" type="ietf-language-tag" multiple="true"
+             label="locales available for outgoing text">
+      </field>
+
+      <field name="incoming-locales" type="ietf-language-tag" multiple="true"
+             label="desired locales for incoming text in decreasing level of preference">
+      </field>
+
+      <field name="offered-capabilities" type="symbol" multiple="true"
+             label="the extension capabilities the sender supports">
+      </field>
+
+      <field name="desired-capabilities" type="symbol" multiple="true"
+             label="the extension capabilities the sender may use if the receiver supports them">
+      </field>
+
+      <field name="properties" type="fields" label="connection properties">
+      </field>
+    </type>
+
+    <!-- - Frame: begin  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+    <type class="composite" name="begin" source="list" provides="frame"
+          label="begin a Session on a channel">
+
+      <descriptor name="amqp:begin:list" code="0x00000000:0x00000011"/>
+
+      <field name="remote-channel" type="ushort" label="the remote channel for this Session">
+      </field>
+
+      <field name="next-outgoing-id" type="transfer-number" mandatory="true"
+             label="the transfer-id of the first transfer id the sender will send">
+      </field>
+
+      <field name="incoming-window" type="uint" mandatory="true"
+             label="the initial incoming-window of the sender">
+      </field>
+
+      <field name="outgoing-window" type="uint" mandatory="true"
+             label="the initial outgoing-window of the sender">
+      </field>
+
+      <field name="handle-max" type="handle" default="4294967295"
+             label="the maximum handle value that may be used on the Session">
+      </field>
+
+      <field name="offered-capabilities" type="symbol" multiple="true"
+             label="the extension capabilities the sender supports">
+      </field>
+
+      <field name="desired-capabilities" type="symbol" multiple="true"
+             label="the extension capabilities the sender may use if the receiver supports them"/>
+
+      <field name="properties" type="fields" label="session properties">
+      </field>
+    </type>
+
+    <!-- - Frame: attach - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+    <type class="composite" name="attach" source="list" provides="frame"
+          label="attach a Link to a Session">
+
+      <descriptor name="amqp:attach:list" code="0x00000000:0x00000012"/>
+
+      <field name="name" type="string" mandatory="true" label="the name of the link">
+      </field>
+
+      <field name="handle" type="handle" mandatory="true">
+      </field>
+
+      <field name="role" type="role" mandatory="true" label="role of the link endpoint"/>
+
+      <field name="snd-settle-mode" type="sender-settle-mode" default="mixed"
+             label="settlement mode for the Sender">
+
+      </field>
+
+      <field name="rcv-settle-mode" type="receiver-settle-mode" default="first"
+             label="the settlement mode of the Receiver">
+      </field>
+
+      <field name="source" type="*" requires="source" label="the source for Messages">
+      </field>
+
+      <field name="target" type="*" requires="target" label="the target for Messages">
+      </field>
+
+      <field name="unsettled" type="map" label="unsettled delivery state">
+      </field>
+
+      <field name="incomplete-unsettled" type="boolean" default="false">
+      </field>
+
+      <field name="initial-delivery-count" type="sequence-no">
+      </field>
+
+
+      <field name="max-message-size" type="ulong"
+             label="the maximum message size supported by the link endpoint">
+      </field>
+
+      <field name="offered-capabilities" type="symbol" multiple="true"
+             label="the extension capabilities the sender supports">
+      </field>
+
+      <field name="desired-capabilities" type="symbol" multiple="true"
+             label="the extension capabilities the sender may use if the receiver supports them"/>
+
+      <field name="properties" type="fields" label="link properties">
+      </field>
+    </type>
+
+    <!-- - Frame: flow - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+    <type class="composite" name="flow" source="list" provides="frame" label="update link state">
+
+      <descriptor name="amqp:flow:list" code="0x00000000:0x00000013"/>
+
+      <field name="next-incoming-id" type="transfer-number">
+      </field>
+
+      <field name="incoming-window" type="uint" mandatory="true">
+      </field>
+
+      <field name="next-outgoing-id" type="transfer-number" mandatory="true">
+      </field>
+
+      <field name="outgoing-window" type="uint" mandatory="true">
+      </field>
+
+      <field name="handle" type="handle">
+      </field>
+
+      <field name="delivery-count" type="sequence-no" label="the endpoint's delivery-count">
+      </field>
+
+      <field name="link-credit" type="uint"
+             label="the current maximum number of Messages that can be received">
+      </field>
+
+      <field name="available" type="uint" label="the number of available Messages">
+      </field>
+
+      <field name="drain" type="boolean" default="false" label="indicates drain mode">
+      </field>
+
+      <field name="echo" type="boolean" default="false"
+             label="request link state from other endpoint"/>
+
+      <field name="properties" type="fields" label="link state properties">
+      </field>
+    </type>
+
+    <!-- - Frame: transfer - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+    <type class="composite" name="transfer" source="list" provides="frame"
+          label="transfer a Message">
+
+      <descriptor name="amqp:transfer:list" code="0x00000000:0x00000014"/>
+
+      <field name="handle" type="handle" mandatory="true">
+      </field>
+
+      <field name="delivery-id" type="delivery-number" label="alias for delivery-tag">
+      </field>
+
+      <field name="delivery-tag" type="delivery-tag">
+      </field>
+
+      <field name="message-format" type="message-format" label="indicates the message format">
+      </field>
+
+      <field name="settled" type="boolean">
+      </field>
+
+      <field name="more" type="boolean" default="false"
+             label="indicates that the Message has more content">
+      </field>
+
+      <field name="rcv-settle-mode" type="receiver-settle-mode">
+      </field>
+
+      <field name="state" type="*" requires="delivery-state"
+             label="the state of the delivery at the sender">
+      </field>
+
+      <field name="resume" type="boolean" default="false" label="indicates a resumed delivery">
+      </field>
+
+      <field name="aborted" type="boolean" default="false"
+             label="indicates that the Message is aborted">
+      </field>
+
+      <field name="batchable" type="boolean" default="false" label="batchable hint">
+      </field>
+    </type>
+
+    <!-- - Frame: disposition  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+    <type class="composite" name="disposition" source="list" provides="frame"
+          label="inform remote peer of delivery state changes">
+
+      <descriptor name="amqp:disposition:list" code="0x00000000:0x00000015"/>
+
+      <field name="role" type="role" mandatory="true" label="directionality of disposition">
+      </field>
+
+      <field name="first" type="delivery-number" mandatory="true" label="lower bound of deliveries">
+      </field>
+
+      <field name="last" type="delivery-number" label="upper bound of deliveries">
+      </field>
+
+      <field name="settled" type="boolean" default="false" label="indicates deliveries are settled">
+      </field>
+
+      <field name="state" type="*" requires="delivery-state" label="indicates state of deliveries">
+      </field>
+
+      <field name="batchable" type="boolean" default="false" label="batchable hint">
+      </field>
+    </type>
+
+    <!-- - Frame: detach - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+    <type class="composite" name="detach" source="list" provides="frame"
+          label="detach the Link Endpoint from the Session" >
+
+      <descriptor name="amqp:detach:list" code="0x00000000:0x00000016"/>
+
+      <field name="handle" type="handle" mandatory="true"
+             label="the local handle of the link to be detached"/>
+
+      <field name="closed" type="boolean" default="false"
+             label="if true then the sender has closed the link">
+      </field>
+
+      <field name="error" type="error" label="error causing the detach">
+      </field>
+    </type>
+
+    <!-- - Frame: end  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+    <type class="composite" name="end" source="list" provides="frame" label="end the Session">
+
+      <descriptor name="amqp:end:list" code="0x00000000:0x00000017"/>
+
+      <field name="error" type="error" label="error causing the end">
+      </field>
+    </type>
+
+    <!-- - Frame: close  - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - - -->
+
+    <type class="composite" name="close" source="list" provides="frame"
+          label="signal a Connection close">
+
+      <descriptor name="amqp:close:list" code="0x00000000:0x00000018"/>
+
+      <field name="error" type="error" label="error causing the close">
+      </field>
+    </type>
+
+  </section>
+
+  <section name="definitions" label="supporting definitions">
+
+    <type class="restricted" name="role" source="boolean" label="link endpoint role">
+      <choice name="sender" value="false" />
+      <choice name="receiver" value="true" />
+    </type>
+
+    <type class="restricted" name="sender-settle-mode" source="ubyte"
+          label="settlement policy for a Sender">
+      <choice name="unsettled" value="0">
+      </choice>
+      <choice name="settled" value="1">
+      </choice>
+      <choice name="mixed" value="2">
+      </choice>
+    </type>
+
+    <type class="restricted" name="receiver-settle-mode" source="ubyte"
+          label="settlement policy for a Receiver">
+      <choice name="first" value="0">
+      </choice>
+      <choice name="second" value="1">
+      </choice>
+    </type>
+
+    <type class="restricted" name="handle" source="uint" label="the handle of a Link">
+    </type>
+
+    <type class="restricted" name="seconds" source="uint" label="a duration measured in seconds"/>
+
+    <type class="restricted" name="milliseconds" source="uint"
+          label="a duration measured in milliseconds"/>
+
+    <type class="restricted" name="delivery-tag" source="binary">
+    </type>
+
+    <type class="restricted" name="delivery-number" source="sequence-no"/>
+
+    <type class="restricted" name="transfer-number" source="sequence-no"/>
+
+    <type class="restricted" name="sequence-no" source="uint" label="32-bit RFC-1982 serial number">
+    </type>
+
+    <type class="restricted" name="message-format" source="uint" label="32-bit message format code">
+    </type>
+
+    <type class="restricted" name="ietf-language-tag" source="symbol"
+          label="an IETF language tag as defined by BCP 47">
+    </type>
+
+    <type class="restricted" name="fields" source="map" label="a mapping from field name to value">
+    </type>
+
+    <type class="composite" name="error" source="list" label="details of an error">
+
+      <descriptor name="amqp:error:list" code="0x00000000:0x0000001d"/>
+
+      <field name="condition" type="symbol" requires="error-condition" mandatory="true"
+             label="error condition">
+      </field>
+
+      <field name="description" type="string" label="descriptive text about the error condition">
+      </field>
+
+      <field name="info" type="fields" label="map carrying information about the error condition"/>
+    </type>
+
+    <type class="restricted" name="amqp-error" source="symbol" provides="error-condition"
+          label="shared error conditions">
+
+      <choice name="internal-error" value="amqp:internal-error">
+      </choice>
+
+      <choice name="not-found" value="amqp:not-found">
+      </choice>
+
+      <choice name="unauthorized-access" value="amqp:unauthorized-access">
+      </choice>
+
+      <choice name="decode-error" value="amqp:decode-error">
+      </choice>
+
+      <choice name="resource-limit-exceeded" value="amqp:resource-limit-exceeded">
+      </choice>
+
+      <choice name="not-allowed" value="amqp:not-allowed">
+      </choice>
+
+      <choice name="invalid-field" value="amqp:invalid-field">
+      </choice>
+
+      <choice name="not-implemented" value="amqp:not-implemented">
+      </choice>
+
+      <choice name="resource-locked" value="amqp:resource-locked">
+      </choice>
+
+      <choice name="precondition-failed" value="amqp:precondition-failed">
+      </choice>
+
+      <choice name="resource-deleted" value="amqp:resource-deleted">
+      </choice>
+
+      <choice name="illegal-state" value="amqp:illegal-state">
+      </choice>
+
+      <choice name="frame-size-too-small" value="amqp:frame-size-too-small">
+      </choice>
+    </type>
+
+    <type class="restricted" name="connection-error" source="symbol" provides="error-condition"
+          label="symbols used to indicate connection error conditions">
+
+      <choice name="connection-forced" value="amqp:connection:forced">
+      </choice>
+
+      <choice name="framing-error" value="amqp:connection:framing-error">
+      </choice>
+
+      <choice name="redirect" value="amqp:connection:redirect">
+      </choice>
+
+    </type>
+
+    <type class="restricted" name="session-error" source="symbol" provides="error-condition"
+          label="symbols used to indicate session error conditions">
+
+      <choice name="window-violation" value="amqp:session:window-violation">
+      </choice>
+
+      <choice name="errant-link" value="amqp:session:errant-link">
+      </choice>
+
+      <choice name="handle-in-use" value="amqp:session:handle-in-use">
+      </choice>
+
+      <choice name="unattached-handle" value="amqp:session:unattached-handle">
+      </choice>
+    </type>
+
+    <type class="restricted" name="link-error" source="symbol" provides="error-condition"
+          label="symbols used to indicate link error conditions">
+
+      <choice name="detach-forced" value="amqp:link:detach-forced">
+      </choice>
+
+      <choice name="transfer-limit-exceeded" value="amqp:link:transfer-limit-exceeded">
+      </choice>
+
+      <choice name="message-size-exceeded" value="amqp:link:message-size-exceeded">
+      </choice>
+
+      <choice name="redirect" value="amqp:link:redirect">
+      </choice>
+
+      <choice name="stolen" value="amqp:link:stolen">
+      </choice>
+
+    </type>
+
+    <definition name="PORT" value="5672" label="the IANA assigned port number for AMQP">
+
+    </definition>
+
+    <definition name="SECURE-PORT" value="5671" label="the IANA assigned port number
+        for secure AMQP (amqps)">
+
+    </definition>
+
+    <definition name="MAJOR" value="1" label="major protocol version" />
+    <definition name="MINOR" value="0" label="minor protocol version" />
+    <definition name="REVISION" value="0" label="protocol revision" />
+
+    <definition name="MIN-MAX-FRAME-SIZE" value="512"
+                label="the lower bound for the agreed maximum frame size (in bytes)">
+    </definition>
+  </section>
+
+</amqp>
