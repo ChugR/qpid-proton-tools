@@ -430,7 +430,7 @@ encoding_sectionmap = {}
 def compute_primitive_types():
     # create sorted lists for display
     for type in typesPrimitive:
-        for enc in type:
+        for enc in type.findall("encoding"):
             typename = type.get("name")
             if enc.get("name") is not None:
                 typename += ":" + enc.get("name")
@@ -474,7 +474,7 @@ def print_primitive_types():
         print(" <td>%s</td>" % type.get("label"))
         print("</tr>")
         addToIndex(type.get("name"), type.text) # Primitive category
-        for enc in type:
+        for enc in type.findall("encoding"):
             print("<tr>")
             print(" <td></td>")
             print(" <td><a name=\"TYPE_%s\"></a><strong>%s</strong></td>" % (enc.text, enc.text))
@@ -540,7 +540,7 @@ def compute_described_types():
         descriptor = type.find("descriptor")
         descr_name = descriptor.get("name")
         descr_code = extract_descr_type_code(descriptor.get("code"))
-        fields = type.find("field")
+        fields = type.findall("field")
         longname = type.text + " " + type.get("name")
         descr_longnames.append(longname)
         descr_codes.append(descr_code)
@@ -550,7 +550,6 @@ def compute_described_types():
         if fields is not None:
             descr_fieldmap[longname] = fields
             for field in fields:
-                log("HACK DESCR_FIELDS processing field %s" % field.get("name"))
                 descr_fieldindex.append( (field.get("name"), type) )
     descr_codes.sort()
 
@@ -612,26 +611,31 @@ def print_described_types():
         print(" <th>Label</th>")
         print("</tr>")
         for child in type:
+            childtag = ""
             childtype = ""
+            printthis = True
             if child.tag == "field":
                 childtype = child.get("type")
                 childlabel = noNoneString(child.get("label"))
                 childname ="<a id=\"FIELD_%s_%s\">%s</a>" % (descr_typename, child.get("name"), child.tag)
                 childtag = " <td>%s</td>" % (childname)
                 addToFieldIndex(child.get("name"), section, descr_typename)
-            else:
+            elif child.tag == "descriptor":
                 childlabel = noNoneString(type.get("label"))
                 childtag = " <td>%s</td>" % child.tag
-            print("<tr>")
-            print("%s" % childtag)
-            print(" <td><strong>%s</strong></td>" % child.get("name"))
-            print(" <td><a href=\"#TYPE_%s\">%s</a></td>" % (childtype, childtype))
-            print(" <td>%s</td>" % noNoneProvideRef(child.get("requires")))
-            print(" <td>%s</td>" % noNoneString(child.get("default")))
-            print(" <td>%s</td>" % noNoneString(child.get("mandatory")))
-            print(" <td>%s</td>" % noNoneString(child.get("multiple")))
-            print(" <td>%s</td>" % childlabel)
-            print("</tr>")
+            else:
+                printthis = False
+            if printthis:
+                print("<tr>")
+                print("%s" % childtag)
+                print(" <td><strong>%s</strong></td>" % child.get("name"))
+                print(" <td><a href=\"#TYPE_%s\">%s</a></td>" % (childtype, childtype))
+                print(" <td>%s</td>" % noNoneProvideRef(child.get("requires")))
+                print(" <td>%s</td>" % noNoneString(child.get("default")))
+                print(" <td>%s</td>" % noNoneString(child.get("mandatory")))
+                print(" <td>%s</td>" % noNoneString(child.get("multiple")))
+                print(" <td>%s</td>" % childlabel)
+                print("</tr>")
         print("</table>")
         print("<br>")
         print("</div>")  # End one described type
@@ -717,7 +721,7 @@ def print_enumerated_types():
         print(" <td>%s</td>" % noNoneString(type.get("label")))
         print(" <td>%s</td>" % noNoneProvideRef(type.get("provides")))
         print("</tr>")
-        for child in type:
+        for child in type.findall("choice"):
             print("<tr>")
             print(" <td><strong>%s</strong></td>" % child.get("name"))
             print(" <td>%s</td>" % child.get("value"))
@@ -1063,6 +1067,20 @@ def main_except(argv):
     
     print_end_body()
 
+    log("Expected Stats:")
+    log("LOG:  STAT: nConstants           = 13")
+    log("LOG:  STAT: nPrimitiveEncodings  = 39")
+    log("LOG:  STAT: nEnumeratedTypes     = 13")
+    log("LOG:  STAT: nRestrictedTypes     = 19")
+    log("LOG:  STAT: nDescribedTypes      = 40")
+    log("LOG:  STAT: nProvidedTypes       = 14")
+    log("LOG:  STAT: nIndexedTypes        = 162")
+    log("LOG:  STAT: nIndexedFields       = 125")
+    log("LOG:  STAT: nIndexedEnumerations = 54")
+    log("LOG:  STAT: nIndexedGrand        = 341")
+    log("LOG:  STAT: nIndexedXrefs        = 279")
+
+    log("Actual Stats:")
     stats.log()
 
 #
