@@ -1,6 +1,6 @@
 #!/usr/bin/env python
 #
-# Version 0.2
+# Version 0.3
 # Original work by Chuck Rolke
 
 #
@@ -110,6 +110,11 @@ class Stats():
         log("STAT: nIndexedEnumerations = %s" % self.nIndexedEnumerations)
         log("STAT: nIndexedGrand        = %s" % self.nIndexedGrand)
         log("STAT: nIndexedXrefs        = %s" % self.nIndexedXrefs)
+
+    def statCheck(self, name, expectedValue):
+        currentValue = getattr(self, name)
+        if not currentValue == expectedValue:
+            log("WARNING stat %s expected %s but is actaully %s" % (name, expectedValue, currentValue))
 
 stats = Stats()
 
@@ -923,18 +928,22 @@ def print_grand_index():
 #
 def print_xref_index():
     #     Create xref name index from type index.
+    xrefNameIndex.append("*")
     for idx in typeNameIndex:
         sections = typeIndex[idx]
         for section in sections:
             name = idx
             if section == "PROVIDED":
                 name += ",PROVIDED"
-            xrefNameIndex.append(name)
+            if name not in xrefNameIndex:
+                xrefNameIndex.append(name)
+            else:
+                # primitive type names get reused as encoding names...
+                pass
         
     xrefNameIndex.sort()
     for name in xrefNameIndex:
         xrefIndex[name] = [] # list of types defined in terms of type 'name'
-    xrefIndex['*'] = []      # hack alert.... no, forget it
 
     # Enum types
     for lname in enum_longnames:
@@ -1008,15 +1017,24 @@ def print_xref_index():
                 typetext = ""
                 typename = ""
                 if len(idxlist) == 1:
-                    type = typesAll[idx]
-                    typetext = type.text
-                    typename = idxlist[0]
+                    if idx == "*":
+                        typetext = "spec:wildcard"
+                        typename = "*"
+                    else:
+                        type = typesAll[idx]
+                        typetext = type.text
+                        typename = idxlist[0]
                 else:
                     typetext = "provided"
                     typename = "<a href=\"#PROVIDEDTYPE_%s\"> %s </a>" % (idxlist[0], idxlist[0])
                 refs = xrefIndex[idx]
                 if len(refs) == 0:
-                    log("INFO: type %s has no cross reference entries" % idx)
+                    print("<tr>")
+                    print(" <td>%s:<strong>%s</strong></td>" % (typetext, typename))
+                    print(" <td>%s</td>" % nbsp())
+                    print(" <td>%s</td>" % nbsp())
+                    print(" <td>%s</td>" % nbsp())
+                    print("</tr>")
                 for ref in refs:
                     print("<tr>")
                     print(" <td>%s:<strong>%s</strong></td>" % (typetext, typename))
@@ -1026,7 +1044,8 @@ def print_xref_index():
                     print("</tr>")
                     stats.nIndexedXrefs += 1
             except:
-                log("Can't resolve as type: %s" % idx)
+                #log("Can't resolve as type: %s" % idx) # constants can't be resolved
+                pass
     print("</table>")
     print("</div>")
     print("<br>")
@@ -1067,21 +1086,17 @@ def main_except(argv):
     
     print_end_body()
 
-    log("Expected Stats:")
-    log("LOG:  STAT: nConstants           = 13")
-    log("LOG:  STAT: nPrimitiveEncodings  = 39")
-    log("LOG:  STAT: nEnumeratedTypes     = 13")
-    log("LOG:  STAT: nRestrictedTypes     = 19")
-    log("LOG:  STAT: nDescribedTypes      = 40")
-    log("LOG:  STAT: nProvidedTypes       = 14")
-    log("LOG:  STAT: nIndexedTypes        = 162")
-    log("LOG:  STAT: nIndexedFields       = 125")
-    log("LOG:  STAT: nIndexedEnumerations = 54")
-    log("LOG:  STAT: nIndexedGrand        = 341")
-    log("LOG:  STAT: nIndexedXrefs        = 279")
-
-    log("Actual Stats:")
-    stats.log()
+    stats.statCheck("nConstants", 13)
+    stats.statCheck("nPrimitiveEncodings", 39)
+    stats.statCheck("nEnumeratedTypes", 13)
+    stats.statCheck("nRestrictedTypes", 19)
+    stats.statCheck("nDescribedTypes", 40)
+    stats.statCheck("nProvidedTypes", 14)
+    stats.statCheck("nIndexedTypes", 162)
+    stats.statCheck("nIndexedFields", 125)
+    stats.statCheck("nIndexedEnumerations", 54)
+    stats.statCheck("nIndexedGrand", 341)
+    stats.statCheck("nIndexedXrefs", 252)
 
 #
 #
