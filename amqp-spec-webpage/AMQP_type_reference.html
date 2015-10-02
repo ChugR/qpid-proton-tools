@@ -287,37 +287,37 @@ th, td {
  <td>security:tls</td>
  <td><a name="TYPE_TLS-MAJOR"></a><strong>TLS-MAJOR</strong></td>
  <td>1</td>
- <td>None</td>
+ <td>major protocol version</td>
 </tr>
 <tr>
  <td>security:tls</td>
  <td><a name="TYPE_TLS-MINOR"></a><strong>TLS-MINOR</strong></td>
  <td>0</td>
- <td>None</td>
+ <td>minor protocol version</td>
 </tr>
 <tr>
  <td>security:tls</td>
  <td><a name="TYPE_TLS-REVISION"></a><strong>TLS-REVISION</strong></td>
  <td>0</td>
- <td>None</td>
+ <td>protocol revision</td>
 </tr>
 <tr>
  <td>security:sasl</td>
  <td><a name="TYPE_SASL-MAJOR"></a><strong>SASL-MAJOR</strong></td>
  <td>1</td>
- <td>None</td>
+ <td>major protocol version</td>
 </tr>
 <tr>
  <td>security:sasl</td>
  <td><a name="TYPE_SASL-MINOR"></a><strong>SASL-MINOR</strong></td>
  <td>0</td>
- <td>None</td>
+ <td>minor protocol version</td>
 </tr>
 <tr>
  <td>security:sasl</td>
  <td><a name="TYPE_SASL-REVISION"></a><strong>SASL-REVISION</strong></td>
  <td>0</td>
- <td>None</td>
+ <td>protocol revision</td>
 </tr>
 </table>
 </div>
@@ -1215,21 +1215,21 @@ th, td {
  <td>security:sasl</td>
  <td><a href="#details_sasl-code"><strong>sasl-code</strong></a></td>
  <td><a href="#TYPE_ubyte">ubyte</a></td>
- <td></td>
+ <td>codes to indicate the outcome of the sasl dialog</td>
  <td></td>
 </tr>
 <tr id="TYPE_transaction-error">
  <td>transactions:coordination</td>
  <td><a href="#details_transaction-error"><strong>transaction-error</strong></a></td>
  <td><a href="#TYPE_symbol">symbol</a></td>
- <td></td>
+ <td>symbols used to indicate transaction errors</td>
  <td><a href="#PROVIDEDTYPE_error-condition">error-condition</a> </td>
 </tr>
 <tr id="TYPE_txn-capability">
  <td>transactions:coordination</td>
  <td><a href="#details_txn-capability"><strong>txn-capability</strong></a></td>
  <td><a href="#TYPE_symbol">symbol</a></td>
- <td></td>
+ <td>symbols indicating (desired/available) capabilities of a transaction coordinator</td>
  <td><a href="#PROVIDEDTYPE_txn-capability">txn-capability</a> </td>
 </tr>
 <tr id="TYPE_amqp-error">
@@ -1389,7 +1389,7 @@ th, td {
 <tr>
  <td><strong>sasl-code</strong></td>
  <td><a href="#TYPE_ubyte">ubyte</a></td>
- <td></td>
+ <td>codes to indicate the outcome of the sasl dialog</td>
  <td></td>
 </tr>
 <tr>
@@ -1428,7 +1428,7 @@ th, td {
 <tr>
  <td><strong>transaction-error</strong></td>
  <td><a href="#TYPE_symbol">symbol</a></td>
- <td></td>
+ <td>symbols used to indicate transaction errors</td>
  <td><a href="#PROVIDEDTYPE_error-condition">error-condition</a> </td>
 </tr>
 <tr>
@@ -1459,7 +1459,7 @@ th, td {
 <tr>
  <td><strong>txn-capability</strong></td>
  <td><a href="#TYPE_symbol">symbol</a></td>
- <td></td>
+ <td>symbols indicating (desired/available) capabilities of a transaction coordinator</td>
  <td><a href="#PROVIDEDTYPE_txn-capability">txn-capability</a> </td>
 </tr>
 <tr>
@@ -2083,7 +2083,7 @@ th, td {
  <td>0x30</td>
  <td><a href="#TYPE_list">list</a></td>
  <td><a href="#PROVIDEDTYPE_target">target</a> </td>
- <td></td>
+ <td>target for communicating with a transaction coordinator</td>
 </tr>
 <tr id="TYPE_declare">
  <td>transactions:coordination</td>
@@ -2091,7 +2091,7 @@ th, td {
  <td>0x31</td>
  <td><a href="#TYPE_list">list</a></td>
  <td></td>
- <td></td>
+ <td>message body for declaring a transaction id</td>
 </tr>
 <tr id="TYPE_discharge">
  <td>transactions:coordination</td>
@@ -2099,7 +2099,7 @@ th, td {
  <td>0x32</td>
  <td><a href="#TYPE_list">list</a></td>
  <td></td>
- <td></td>
+ <td>message body for discharging a transaction</td>
 </tr>
 <tr id="TYPE_declared">
  <td>transactions:coordination</td>
@@ -2115,7 +2115,7 @@ th, td {
  <td>0x34</td>
  <td><a href="#TYPE_list">list</a></td>
  <td><a href="#PROVIDEDTYPE_delivery-state">delivery-state</a> </td>
- <td></td>
+ <td>the state of a transactional message transfer</td>
 </tr>
 <tr id="TYPE_sasl-mechanisms">
  <td>security:sasl</td>
@@ -2123,7 +2123,7 @@ th, td {
  <td>0x40</td>
  <td><a href="#TYPE_list">list</a></td>
  <td><a href="#PROVIDEDTYPE_sasl-frame">sasl-frame</a> </td>
- <td></td>
+ <td>advertise available sasl mechanisms</td>
 </tr>
 <tr id="TYPE_sasl-init">
  <td>security:sasl</td>
@@ -2131,7 +2131,7 @@ th, td {
  <td>0x41</td>
  <td><a href="#TYPE_list">list</a></td>
  <td><a href="#PROVIDEDTYPE_sasl-frame">sasl-frame</a> </td>
- <td></td>
+ <td>initiate sasl exchange</td>
 </tr>
 <tr id="TYPE_sasl-challenge">
  <td>security:sasl</td>
@@ -2139,7 +2139,7 @@ th, td {
  <td>0x42</td>
  <td><a href="#TYPE_list">list</a></td>
  <td><a href="#PROVIDEDTYPE_sasl-frame">sasl-frame</a> </td>
- <td></td>
+ <td>security mechanism challenge</td>
 </tr>
 <tr id="TYPE_sasl-response">
  <td>security:sasl</td>
@@ -2147,7 +2147,7 @@ th, td {
  <td>0x43</td>
  <td><a href="#TYPE_list">list</a></td>
  <td><a href="#PROVIDEDTYPE_sasl-frame">sasl-frame</a> </td>
- <td></td>
+ <td>security mechanism response</td>
 </tr>
 <tr id="TYPE_sasl-outcome">
  <td>security:sasl</td>
@@ -2155,7 +2155,7 @@ th, td {
  <td>0x44</td>
  <td><a href="#TYPE_list">list</a></td>
  <td><a href="#PROVIDEDTYPE_sasl-frame">sasl-frame</a> </td>
- <td></td>
+ <td>indicates the outcome of the sasl dialog</td>
 </tr>
 <tr id="TYPE_header">
  <td>messaging:message-format</td>
@@ -3740,7 +3740,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td></td>
+ <td>target for communicating with a transaction coordinator</td>
 </tr>
 <tr>
  <td><a id="FIELD_coordinator_capabilities">field</a></td>
@@ -3750,7 +3750,7 @@ th, td {
  <td></td>
  <td></td>
  <td>true</td>
- <td></td>
+ <td>the capabilities supported at the coordinator</td>
 </tr>
 </table>
 <br>
@@ -3777,7 +3777,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td></td>
+ <td>message body for declaring a transaction id</td>
 </tr>
 <tr>
  <td><a id="FIELD_declare_global-id">field</a></td>
@@ -3787,7 +3787,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td></td>
+ <td>global transaction id</td>
 </tr>
 </table>
 <br>
@@ -3814,7 +3814,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td></td>
+ <td>message body for discharging a transaction</td>
 </tr>
 <tr>
  <td><a id="FIELD_discharge_txn-id">field</a></td>
@@ -3824,7 +3824,7 @@ th, td {
  <td></td>
  <td>true</td>
  <td></td>
- <td></td>
+ <td>identifies the transaction to be discharged</td>
 </tr>
 <tr>
  <td><a id="FIELD_discharge_fail">field</a></td>
@@ -3834,7 +3834,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td></td>
+ <td>indicates the transaction should be rolled back</td>
 </tr>
 </table>
 <br>
@@ -3871,7 +3871,7 @@ th, td {
  <td></td>
  <td>true</td>
  <td></td>
- <td></td>
+ <td>the allocated transaction id</td>
 </tr>
 </table>
 <br>
@@ -3898,7 +3898,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td></td>
+ <td>the state of a transactional message transfer</td>
 </tr>
 <tr>
  <td><a id="FIELD_transactional-state_txn-id">field</a></td>
@@ -3908,7 +3908,7 @@ th, td {
  <td></td>
  <td>true</td>
  <td></td>
- <td></td>
+ <td>identifies the transaction with which the state is associated</td>
 </tr>
 <tr>
  <td><a id="FIELD_transactional-state_outcome">field</a></td>
@@ -3918,7 +3918,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td></td>
+ <td>provisional outcome</td>
 </tr>
 </table>
 <br>
@@ -3945,7 +3945,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td></td>
+ <td>advertise available sasl mechanisms</td>
 </tr>
 <tr>
  <td><a id="FIELD_sasl-mechanisms_sasl-server-mechanisms">field</a></td>
@@ -3955,7 +3955,7 @@ th, td {
  <td></td>
  <td>true</td>
  <td>true</td>
- <td></td>
+ <td>supported sasl mechanisms</td>
 </tr>
 </table>
 <br>
@@ -3982,7 +3982,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td></td>
+ <td>initiate sasl exchange</td>
 </tr>
 <tr>
  <td><a id="FIELD_sasl-init_mechanism">field</a></td>
@@ -3992,7 +3992,7 @@ th, td {
  <td></td>
  <td>true</td>
  <td></td>
- <td></td>
+ <td>selected security mechanism</td>
 </tr>
 <tr>
  <td><a id="FIELD_sasl-init_initial-response">field</a></td>
@@ -4002,7 +4002,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td></td>
+ <td>security response data</td>
 </tr>
 <tr>
  <td><a id="FIELD_sasl-init_hostname">field</a></td>
@@ -4012,7 +4012,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td></td>
+ <td>the name of the target host</td>
 </tr>
 </table>
 <br>
@@ -4039,7 +4039,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td></td>
+ <td>security mechanism challenge</td>
 </tr>
 <tr>
  <td><a id="FIELD_sasl-challenge_challenge">field</a></td>
@@ -4049,7 +4049,7 @@ th, td {
  <td></td>
  <td>true</td>
  <td></td>
- <td></td>
+ <td>security challenge data</td>
 </tr>
 </table>
 <br>
@@ -4076,7 +4076,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td></td>
+ <td>security mechanism response</td>
 </tr>
 <tr>
  <td><a id="FIELD_sasl-response_response">field</a></td>
@@ -4086,7 +4086,7 @@ th, td {
  <td></td>
  <td>true</td>
  <td></td>
- <td></td>
+ <td>security response data</td>
 </tr>
 </table>
 <br>
@@ -4113,7 +4113,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td></td>
+ <td>indicates the outcome of the sasl dialog</td>
 </tr>
 <tr>
  <td><a id="FIELD_sasl-outcome_code">field</a></td>
@@ -4123,7 +4123,7 @@ th, td {
  <td></td>
  <td>true</td>
  <td></td>
- <td></td>
+ <td>indicates the outcome of the sasl dialog</td>
 </tr>
 <tr>
  <td><a id="FIELD_sasl-outcome_additional-data">field</a></td>
@@ -4133,7 +4133,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td></td>
+ <td>additional data as specified in RFC-4422</td>
 </tr>
 </table>
 <br>
@@ -4321,7 +4321,7 @@ th, td {
  <td></td>
  <td></td>
  <td></td>
- <td>the address of the Node for which the Message is destined</td>
+ <td>the address of the Node the Message is destined for</td>
 </tr>
 <tr>
  <td><a id="FIELD_properties_subject">field</a></td>
@@ -8506,10 +8506,142 @@ th, td {
  <th>Type</th>
 </tr>
 <tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#TYPE_amqp-value">amqp-value</a></td>
+ <td>messaging:message-format</td>
+ <td>described</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_attach_source">source</a></td>
+ <td>transport:performatives - attach</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_attach_target">target</a></td>
+ <td>transport:performatives - attach</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_transfer_state">state</a></td>
+ <td>transport:performatives - transfer</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_disposition_state">state</a></td>
+ <td>transport:performatives - disposition</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_source_address">address</a></td>
+ <td>messaging:addressing - source</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_source_default-outcome">default-outcome</a></td>
+ <td>messaging:addressing - source</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_target_address">address</a></td>
+ <td>messaging:addressing - target</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_declare_global-id">global-id</a></td>
+ <td>transactions:coordination - declare</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_discharge_txn-id">txn-id</a></td>
+ <td>transactions:coordination - discharge</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_declared_txn-id">txn-id</a></td>
+ <td>transactions:coordination - declared</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_transactional-state_txn-id">txn-id</a></td>
+ <td>transactions:coordination - transactional-state</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_transactional-state_outcome">outcome</a></td>
+ <td>transactions:coordination - transactional-state</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_properties_message-id">message-id</a></td>
+ <td>messaging:message-format - properties</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_properties_to">to</a></td>
+ <td>messaging:message-format - properties</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_properties_reply-to">reply-to</a></td>
+ <td>messaging:message-format - properties</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>spec:wildcard:<strong>*</strong></td>
+ <td><a href="#FIELD_properties_correlation-id">correlation-id</a></td>
+ <td>messaging:message-format - properties</td>
+ <td>field</td>
+</tr>
+<tr>
+ <td>messaging:delivery-state:<strong>accepted</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
  <td>provided:<strong><a href="#PROVIDEDTYPE_address"> address </a></strong></td>
  <td><a href="#TYPE_address-string">address-string</a></td>
  <td></td>
  <td>provided</td>
+</tr>
+<tr>
+ <td>messaging:message-format:<strong>address-string</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>transport:definitions:<strong>amqp-error</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>messaging:message-format:<strong>amqp-sequence</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>messaging:message-format:<strong>amqp-value</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
  <td>messaging:message-format:<strong>annotations</strong></td>
@@ -8528,6 +8660,30 @@ th, td {
  <td><a href="#TYPE_footer">footer</a></td>
  <td>messaging:message-format</td>
  <td>described</td>
+</tr>
+<tr>
+ <td>messaging:message-format:<strong>application-properties</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>types:encodings:<strong>array</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>transport:performatives:<strong>attach</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>transport:performatives:<strong>begin</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
  <td>types:encodings:<strong>binary</strong></td>
@@ -8698,118 +8854,100 @@ th, td {
  <td>field</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#TYPE_role">role</a></td>
- <td>transport:definitions</td>
- <td>enum</td>
+ <td>types:encodings:<strong>byte</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_attach_incomplete-unsettled">incomplete-unsettled</a></td>
- <td>transport:performatives - attach</td>
- <td>field</td>
+ <td>types:encodings:<strong>char</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_flow_drain">drain</a></td>
- <td>transport:performatives - flow</td>
- <td>field</td>
+ <td>transport:performatives:<strong>close</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_flow_echo">echo</a></td>
- <td>transport:performatives - flow</td>
- <td>field</td>
+ <td>transport:definitions:<strong>connection-error</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_transfer_settled">settled</a></td>
- <td>transport:performatives - transfer</td>
- <td>field</td>
+ <td>transactions:coordination:<strong>coordinator</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_transfer_more">more</a></td>
- <td>transport:performatives - transfer</td>
- <td>field</td>
+ <td>messaging:message-format:<strong>data</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_transfer_resume">resume</a></td>
- <td>transport:performatives - transfer</td>
- <td>field</td>
+ <td>types:encodings:<strong>decimal128</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_transfer_aborted">aborted</a></td>
- <td>transport:performatives - transfer</td>
- <td>field</td>
+ <td>types:encodings:<strong>decimal32</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_transfer_batchable">batchable</a></td>
- <td>transport:performatives - transfer</td>
- <td>field</td>
+ <td>types:encodings:<strong>decimal64</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_disposition_settled">settled</a></td>
- <td>transport:performatives - disposition</td>
- <td>field</td>
+ <td>transactions:coordination:<strong>declare</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_disposition_batchable">batchable</a></td>
- <td>transport:performatives - disposition</td>
- <td>field</td>
+ <td>transactions:coordination:<strong>declared</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_detach_closed">closed</a></td>
- <td>transport:performatives - detach</td>
- <td>field</td>
+ <td>messaging:addressing:<strong>delete-on-close</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_modified_delivery-failed">delivery-failed</a></td>
- <td>messaging:delivery-state - modified</td>
- <td>field</td>
+ <td>messaging:addressing:<strong>delete-on-no-links</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_modified_undeliverable-here">undeliverable-here</a></td>
- <td>messaging:delivery-state - modified</td>
- <td>field</td>
+ <td>messaging:addressing:<strong>delete-on-no-links-or-messages</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_source_dynamic">dynamic</a></td>
- <td>messaging:addressing - source</td>
- <td>field</td>
+ <td>messaging:addressing:<strong>delete-on-no-messages</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_target_dynamic">dynamic</a></td>
- <td>messaging:addressing - target</td>
- <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_discharge_fail">fail</a></td>
- <td>transactions:coordination - discharge</td>
- <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_header_durable">durable</a></td>
- <td>messaging:message-format - header</td>
- <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>boolean</strong></td>
- <td><a href="#FIELD_header_first-acquirer">first-acquirer</a></td>
- <td>messaging:message-format - header</td>
- <td>field</td>
+ <td>messaging:message-format:<strong>delivery-annotations</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
  <td>transport:definitions:<strong>delivery-number</strong></td>
@@ -8878,10 +9016,40 @@ th, td {
  <td>field</td>
 </tr>
 <tr>
+ <td>transport:performatives:<strong>detach</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>transactions:coordination:<strong>discharge</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>transport:performatives:<strong>disposition</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
  <td>provided:<strong><a href="#PROVIDEDTYPE_distribution-mode"> distribution-mode </a></strong></td>
  <td><a href="#TYPE_std-dist-mode">std-dist-mode</a></td>
  <td></td>
  <td>provided</td>
+</tr>
+<tr>
+ <td>types:encodings:<strong>double</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>transport:performatives:<strong>end</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
  <td>transport:definitions:<strong>error</strong></td>
@@ -8986,6 +9154,24 @@ th, td {
  <td>field</td>
 </tr>
 <tr>
+ <td>types:encodings:<strong>float</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>transport:performatives:<strong>flow</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>messaging:message-format:<strong>footer</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
  <td>provided:<strong><a href="#PROVIDEDTYPE_frame"> frame </a></strong></td>
  <td><a href="#TYPE_open">open</a></td>
  <td></td>
@@ -9070,6 +9256,12 @@ th, td {
  <td>field</td>
 </tr>
 <tr>
+ <td>messaging:message-format:<strong>header</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
  <td>transport:definitions:<strong>ietf-language-tag</strong></td>
  <td><a href="#FIELD_open_outgoing-locales">outgoing-locales</a></td>
  <td>transport:performatives - open</td>
@@ -9080,6 +9272,12 @@ th, td {
  <td><a href="#FIELD_open_incoming-locales">incoming-locales</a></td>
  <td>transport:performatives - open</td>
  <td>field</td>
+</tr>
+<tr>
+ <td>types:encodings:<strong>int</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
  <td>provided:<strong><a href="#PROVIDEDTYPE_lifetime-policy"> lifetime-policy </a></strong></td>
@@ -9104,6 +9302,12 @@ th, td {
  <td><a href="#TYPE_delete-on-no-links-or-messages">delete-on-no-links-or-messages</a></td>
  <td></td>
  <td>provided</td>
+</tr>
+<tr>
+ <td>transport:definitions:<strong>link-error</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
  <td>types:encodings:<strong>list</strong></td>
@@ -9310,6 +9514,12 @@ th, td {
  <td>described</td>
 </tr>
 <tr>
+ <td>types:encodings:<strong>long</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
  <td>types:encodings:<strong>map</strong></td>
  <td><a href="#TYPE_fields">fields</a></td>
  <td>transport:definitions</td>
@@ -9338,6 +9548,12 @@ th, td {
  <td><a href="#FIELD_attach_unsettled">unsettled</a></td>
  <td>transport:performatives - attach</td>
  <td>field</td>
+</tr>
+<tr>
+ <td>messaging:message-format:<strong>message-annotations</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
  <td>transport:definitions:<strong>message-format</strong></td>
@@ -9370,6 +9586,30 @@ th, td {
  <td>provided</td>
 </tr>
 <tr>
+ <td>messaging:message-format:<strong>message-id-binary</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>messaging:message-format:<strong>message-id-string</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>messaging:message-format:<strong>message-id-ulong</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>messaging:message-format:<strong>message-id-uuid</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
  <td>transport:definitions:<strong>milliseconds</strong></td>
  <td><a href="#FIELD_open_idle-time-out">idle-time-out</a></td>
  <td>transport:performatives - open</td>
@@ -9382,6 +9622,12 @@ th, td {
  <td>field</td>
 </tr>
 <tr>
+ <td>messaging:delivery-state:<strong>modified</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
  <td>messaging:addressing:<strong>node-properties</strong></td>
  <td><a href="#FIELD_source_dynamic-node-properties">dynamic-node-properties</a></td>
  <td>messaging:addressing - source</td>
@@ -9392,6 +9638,18 @@ th, td {
  <td><a href="#FIELD_target_dynamic-node-properties">dynamic-node-properties</a></td>
  <td>messaging:addressing - target</td>
  <td>field</td>
+</tr>
+<tr>
+ <td>types:encodings:<strong>null</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>transport:performatives:<strong>open</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
  <td>provided:<strong><a href="#PROVIDEDTYPE_outcome"> outcome </a></strong></td>
@@ -9424,6 +9682,18 @@ th, td {
  <td>provided</td>
 </tr>
 <tr>
+ <td>messaging:message-format:<strong>properties</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>messaging:delivery-state:<strong>received</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
  <td>transport:definitions:<strong>receiver-settle-mode</strong></td>
  <td><a href="#FIELD_attach_rcv-settle-mode">rcv-settle-mode</a></td>
  <td>transport:performatives - attach</td>
@@ -9436,6 +9706,18 @@ th, td {
  <td>field</td>
 </tr>
 <tr>
+ <td>messaging:delivery-state:<strong>rejected</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>messaging:delivery-state:<strong>released</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
  <td>transport:definitions:<strong>role</strong></td>
  <td><a href="#FIELD_attach_role">role</a></td>
  <td>transport:performatives - attach</td>
@@ -9446,6 +9728,12 @@ th, td {
  <td><a href="#FIELD_disposition_role">role</a></td>
  <td>transport:performatives - disposition</td>
  <td>field</td>
+</tr>
+<tr>
+ <td>security:sasl:<strong>sasl-challenge</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
  <td>security:sasl:<strong>sasl-code</strong></td>
@@ -9482,6 +9770,30 @@ th, td {
  <td><a href="#TYPE_sasl-outcome">sasl-outcome</a></td>
  <td></td>
  <td>provided</td>
+</tr>
+<tr>
+ <td>security:sasl:<strong>sasl-init</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>security:sasl:<strong>sasl-mechanisms</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>security:sasl:<strong>sasl-outcome</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>security:sasl:<strong>sasl-response</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
  <td>transport:definitions:<strong>seconds</strong></td>
@@ -9586,10 +9898,34 @@ th, td {
  <td>field</td>
 </tr>
 <tr>
+ <td>transport:definitions:<strong>session-error</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>types:encodings:<strong>short</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>messaging:addressing:<strong>source</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
  <td>provided:<strong><a href="#PROVIDEDTYPE_source"> source </a></strong></td>
  <td><a href="#TYPE_source">source</a></td>
  <td></td>
  <td>provided</td>
+</tr>
+<tr>
+ <td>messaging:addressing:<strong>std-dist-mode</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
  <td>types:encodings:<strong>string</strong></td>
@@ -9802,6 +10138,12 @@ th, td {
  <td>field</td>
 </tr>
 <tr>
+ <td>messaging:addressing:<strong>target</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
  <td>provided:<strong><a href="#PROVIDEDTYPE_target"> target </a></strong></td>
  <td><a href="#TYPE_target">target</a></td>
  <td></td>
@@ -9850,6 +10192,30 @@ th, td {
  <td>field</td>
 </tr>
 <tr>
+ <td>transactions:coordination:<strong>transaction-error</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>transactions:coordination:<strong>transaction-id</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>transactions:coordination:<strong>transactional-state</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
+ <td>transport:performatives:<strong>transfer</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+</tr>
+<tr>
  <td>transport:definitions:<strong>transfer-number</strong></td>
  <td><a href="#FIELD_begin_next-outgoing-id">next-outgoing-id</a></td>
  <td>transport:performatives - begin</td>
@@ -9866,6 +10232,12 @@ th, td {
  <td><a href="#FIELD_flow_next-outgoing-id">next-outgoing-id</a></td>
  <td>transport:performatives - flow</td>
  <td>field</td>
+</tr>
+<tr>
+ <td>transactions:coordination:<strong>txn-capability</strong></td>
+ <td>&#160;</td>
+ <td>&#160;</td>
+ <td>&#160;</td>
 </tr>
 <tr>
  <td>provided:<strong><a href="#PROVIDEDTYPE_txn-capability"> txn-capability </a></strong></td>
@@ -9904,120 +10276,6 @@ th, td {
  <td>field</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>ubyte</strong></td>
- <td><a href="#TYPE_sasl-code">sasl-code</a></td>
- <td>security:sasl</td>
- <td>enum</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>ubyte</strong></td>
- <td><a href="#TYPE_receiver-settle-mode">receiver-settle-mode</a></td>
- <td>transport:definitions</td>
- <td>enum</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>ubyte</strong></td>
- <td><a href="#TYPE_sender-settle-mode">sender-settle-mode</a></td>
- <td>transport:definitions</td>
- <td>enum</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>ubyte</strong></td>
- <td><a href="#FIELD_header_priority">priority</a></td>
- <td>messaging:message-format - header</td>
- <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uint</strong></td>
- <td><a href="#TYPE_terminus-durability">terminus-durability</a></td>
- <td>messaging:addressing</td>
- <td>enum</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uint</strong></td>
- <td><a href="#TYPE_handle">handle</a></td>
- <td>transport:definitions</td>
- <td>restricted</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uint</strong></td>
- <td><a href="#TYPE_seconds">seconds</a></td>
- <td>transport:definitions</td>
- <td>restricted</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uint</strong></td>
- <td><a href="#TYPE_milliseconds">milliseconds</a></td>
- <td>transport:definitions</td>
- <td>restricted</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uint</strong></td>
- <td><a href="#TYPE_sequence-no">sequence-no</a></td>
- <td>transport:definitions</td>
- <td>restricted</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uint</strong></td>
- <td><a href="#TYPE_message-format">message-format</a></td>
- <td>transport:definitions</td>
- <td>restricted</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uint</strong></td>
- <td><a href="#FIELD_open_max-frame-size">max-frame-size</a></td>
- <td>transport:performatives - open</td>
- <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uint</strong></td>
- <td><a href="#FIELD_begin_incoming-window">incoming-window</a></td>
- <td>transport:performatives - begin</td>
- <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uint</strong></td>
- <td><a href="#FIELD_begin_outgoing-window">outgoing-window</a></td>
- <td>transport:performatives - begin</td>
- <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uint</strong></td>
- <td><a href="#FIELD_flow_incoming-window">incoming-window</a></td>
- <td>transport:performatives - flow</td>
- <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uint</strong></td>
- <td><a href="#FIELD_flow_outgoing-window">outgoing-window</a></td>
- <td>transport:performatives - flow</td>
- <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uint</strong></td>
- <td><a href="#FIELD_flow_link-credit">link-credit</a></td>
- <td>transport:performatives - flow</td>
- <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uint</strong></td>
- <td><a href="#FIELD_flow_available">available</a></td>
- <td>transport:performatives - flow</td>
- <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uint</strong></td>
- <td><a href="#FIELD_received_section-number">section-number</a></td>
- <td>messaging:delivery-state - received</td>
- <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uint</strong></td>
- <td><a href="#FIELD_header_delivery-count">delivery-count</a></td>
- <td>messaging:message-format - header</td>
- <td>field</td>
-</tr>
-<tr>
  <td>types:encodings:<strong>uint</strong></td>
  <td><a href="#TYPE_terminus-durability">terminus-durability</a></td>
  <td>messaging:addressing</td>
@@ -10126,24 +10384,6 @@ th, td {
  <td>field</td>
 </tr>
 <tr>
- <td>types:encodings:<strong>ulong</strong></td>
- <td><a href="#TYPE_message-id-ulong">message-id-ulong</a></td>
- <td>messaging:message-format</td>
- <td>restricted</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>ulong</strong></td>
- <td><a href="#FIELD_attach_max-message-size">max-message-size</a></td>
- <td>transport:performatives - attach</td>
- <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>ulong</strong></td>
- <td><a href="#FIELD_received_section-offset">section-offset</a></td>
- <td>messaging:delivery-state - received</td>
- <td>field</td>
-</tr>
-<tr>
  <td>types:encodings:<strong>ushort</strong></td>
  <td><a href="#FIELD_open_channel-max">channel-max</a></td>
  <td>transport:performatives - open</td>
@@ -10154,24 +10394,6 @@ th, td {
  <td><a href="#FIELD_begin_remote-channel">remote-channel</a></td>
  <td>transport:performatives - begin</td>
  <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>ushort</strong></td>
- <td><a href="#FIELD_open_channel-max">channel-max</a></td>
- <td>transport:performatives - open</td>
- <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>ushort</strong></td>
- <td><a href="#FIELD_begin_remote-channel">remote-channel</a></td>
- <td>transport:performatives - begin</td>
- <td>field</td>
-</tr>
-<tr>
- <td>types:encodings:<strong>uuid</strong></td>
- <td><a href="#TYPE_message-id-uuid">message-id-uuid</a></td>
- <td>messaging:message-format</td>
- <td>restricted</td>
 </tr>
 <tr>
  <td>types:encodings:<strong>uuid</strong></td>
