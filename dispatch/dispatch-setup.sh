@@ -29,6 +29,16 @@ build_log () {
     git rev-parse HEAD                      >> ${file}
 }
 
+merge_paths() {
+    # Merge paths, remove duplicates (keep first instance)
+    path=$(echo $* | sed 's/:/ /'g) # Split with spaces.
+    newpath=""
+    for d in $path; do		# Remove duplicates
+	{ echo $newpath | egrep -q "$d"; } || newpath="$newpath:$d"
+    done
+    echo $newpath | sed 's/^://' # Remove leading :
+}
+
 if [ -z "$1" ]; then
     pushd
 
@@ -58,7 +68,7 @@ if [ -z "$1" ]; then
     build_log ${INSTALLPREFIX}
     cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=${INSTALLPREFIX} ..
     # Don't install. This allows running from build area.
-    #make -j 8 install
+    make -j 8
 
     # install qpid giblets
     cd ${QPID}/qpid/tools;  ./setup.py install --prefix ${INSTALLPREFIX}
@@ -68,10 +78,17 @@ if [ -z "$1" ]; then
 fi
 
 # set up the environment
-export PATH=${PATH}:${INSTALLPREFIX}/sbin
-export PATH=${PATH}:${INSTALLPREFIX}/bin
-export PYTHONPATH=${PYTHONPATH}:${INSTALLPREFIX}/lib/proton/bindings/python
-export PYTHONPATH=${PYTHONPATH}:${INSTALLPREFIX}/lib64/proton/bindings/python
-export PYTHONPATH=${PYTHONPATH}:${INSTALLPREFIX}/lib/python2.7/site-packages
-export PYTHONPATH=${PYTHONPATH}:${INSTALLPREFIX}/lib64/python2.7/site-packages
-export LD_LIBRARY_PATH=${LD_LIBRARY_PATH}:${INSTALLPREFIX}/lib64
+export PATH=$(merge_paths \
+		  ~/bin \
+		  ${INSTALLPREFIX}/sbin \
+		  ${INSTALLPREFIX}/bin \
+		  ${PATH})
+export PYTHONPATH=$(merge_paths \
+			${INSTALLPREFIX}/lib/proton/bindings/python \
+                        ${INSTALLPREFIX}/lib64/proton/bindings/python \
+                        ${INSTALLPREFIX}/lib/python2.7/site-packages \
+			${INSTALLPREFIX}/lib64/python2.7/site-packages \
+		        ${PYTHONPATH})
+export LD_LIBRARY_PATH=$(merge_paths \
+			     ${INSTALLPREFIX}/lib64 \
+			     ${LD_LIBRARY_PATH})
