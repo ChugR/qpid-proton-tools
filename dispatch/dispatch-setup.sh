@@ -6,9 +6,10 @@
 #
 # Usage:
 #  > ./dispatch_setup.sh
-#  > ./dispatch_setup.sh xxx
+#  > ./dispatch_setup.sh build
 #
-# A non-blank arg 1 skips the build part and just sets the environment
+# A blank arg 1 just sets the enviornment. Remember to dot source it!
+# A non-blank arg 1 performs a complete rebuild.
 #
 # And then with the environment set up run dispatch in kdevelop:
 #  > kdevelop &
@@ -40,13 +41,12 @@ merge_paths() {
     newpath=""
     for d in $path; do		# Remove duplicates
 	{ echo $newpath | egrep -q "$d"; } || newpath="$newpath:$d"
-	echo $newpath
     done
     echo $newpath | sed 's/^://' # Remove leading :
 }
 
-if [ -z "$1" ]; then
-    # Go somewhare safe
+if [ ! -z "$1" ]; then
+    # Go somewhere safe
     cd ~
 
     # Flush old builds
@@ -119,8 +119,10 @@ export PYTHONPATH=$(merge_paths \
 export LD_LIBRARY_PATH=$(merge_paths \
 			     ${INSTALLPREFIX}/lib64 \
 			     ${LD_LIBRARY_PATH})
-export BUILD_DIR=/home/chug/git/qpid-dispatch/build
-export QPID_DISPATCH_HOME=/home/chug/git/qpid-dispatch
-export QPID_DISPATCH_LIB=/home/chug/git/qpid-dispatch/build/src/libqpid-dispatch.so
-export MANPATH=/home/chug/git/qpid-dispatch/build/doc/man
-export SOURCE_DIR=/home/chug/git/qpid-dispatch
+export BUILD_DIR=${DISPATCH}/build
+export QPID_DISPATCH_HOME=${DISPATCH}
+export QPID_DISPATCH_LIB=${DISPATCH}/build/src/libqpid-dispatch.so
+export MANPATH=$(merge_paths \
+		     ${DISPATCH}/build/doc/man \
+		     ${MANPATH})
+export SOURCE_DIR=${DISPATCH}
