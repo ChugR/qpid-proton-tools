@@ -121,6 +121,6 @@ export LD_LIBRARY_PATH=$(merge_paths \
 			     ${LD_LIBRARY_PATH})
 export BUILD_DIR=/home/chug/git/qpid-dispatch/build
 export QPID_DISPATCH_HOME=/home/chug/git/qpid-dispatch
-export QPID_DISPATCH_LIB=/home/chug/git/qpid-dispatch/build/src/libqpid-dispatch.so.1
+export QPID_DISPATCH_LIB=/home/chug/git/qpid-dispatch/build/src/libqpid-dispatch.so
 export MANPATH=/home/chug/git/qpid-dispatch/build/doc/man
 export SOURCE_DIR=/home/chug/git/qpid-dispatch
