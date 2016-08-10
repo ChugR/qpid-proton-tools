@@ -1,5 +1,5 @@
 #!/bin/bash
-# Chuck Rolke 2015
+# Chuck Rolke 2015, 2016
 
 #
 # Set up proton and qpid for a dispatch test run.
@@ -83,7 +83,7 @@ if [ ! -z "$1" ]; then
     # build dispatch
     cd ${DISPATCH}/build
     build_log ${INSTALLPREFIX}
-    cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=${INSTALLPREFIX} ..
+    cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=${INSTALLPREFIX} ..
     # Don't install. This allows running from build area.
     make -j 8
 
