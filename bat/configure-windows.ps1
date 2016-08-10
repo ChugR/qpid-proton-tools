@@ -529,12 +529,8 @@ function SelectVisualStudioVersion {
 #############################
 # Main
 #############################
-#
-# curDir is qpid\cpp\bindings\qpid\dotnet.
-#
-[string] $curDir   = Split-Path -parent $MyInvocation.MyCommand.Definition
-[string] $projRoot = Resolve-Path (Join-Path $curDir "..\..\..\..")
-[string] $cppDir   = Resolve-Path (Join-Path $curDir "..\..\..")
+[string] $projRoot = Get-Location
+[string] $cppDir   = Get-Location
 
 [System.Reflection.Assembly]::LoadWithPartialName("System.Windows.Forms") | Out-Null
 [System.Reflection.Assembly]::LoadWithPartialName("System.Drawing")       | Out-Null

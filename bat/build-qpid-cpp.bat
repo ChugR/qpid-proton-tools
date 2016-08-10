@@ -164,13 +164,9 @@ if   %keep_build%=="false" call :MakeNewDir %build_dir%
 :: Note don't recreate install dir as that kills the intalled proton
 
 :: use built-in procedure to run cmake and churn out supporting scripts
-mkdir cpp
-mv bindings cpp\
-powershell .\cpp\bindings\qpid\dotnet\configure-windows.ps1 %vsname%_%arch% %MY_BOOST_ROOT%
+powershell  -ExecutionPolicy unrestricted -File B:\configure-windows.ps1 %vsname%_%arch% %MY_BOOST_ROOT%
 cd %build_dir%
 call make-install
-mv cpp\bindings .
-rmdir cpp
 
 :: Copy the qpid-proton dlls from install dir into build\src\Debug
 
