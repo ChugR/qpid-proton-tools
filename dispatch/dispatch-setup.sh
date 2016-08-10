@@ -9,7 +9,7 @@
 #  > ./dispatch_setup.sh build
 #
 # A blank arg 1 just sets the enviornment. Remember to dot source it!
-# A non-blank arg 1 performs a complete rebuild.
+# Arg1 == build performs a complete rebuild.
 #
 # And then with the environment set up run dispatch in kdevelop:
 #  > kdevelop &
@@ -45,7 +45,8 @@ merge_paths() {
     echo $newpath | sed 's/^://' # Remove leading :
 }
 
-if [ ! -z "$1" ]; then
+thearg=${1:-setupenv}
+if [ "$1" == "build" ]; then
     # Go somewhere safe
     cd ~
 
