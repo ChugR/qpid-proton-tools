@@ -21,10 +21,11 @@
 ::
 :: build_qpid.bat
 :: Version 1.5 2015-07-09
+:: Version 1.6 2016-03-08 Add VS2015
 ::
-:: Usage: build_qpid.bat [2008|2010|2012|2013 x64|x86 [any        ]]
-::                        %1                  %2       %3
-::                                                     keep build
+:: Usage: build_qpid.bat [2008|2010|2012|2013|2015 x64|x86 [any        ]]
+::                        %1                       %2       %3
+::                                                          keep build
 :: A script to cmake/make/install qpid on windows.
 ::
 :: Note that users must edit this script to locate BOOST.
@@ -35,13 +36,13 @@
 :: It assumes an installed directory that may be prepopulated with proton for
 :: AMQP 1.0 support.
 ::
-:: Cmake and the compiles will be in the current directory:
+:: Cmake and the compiles will be in subfolder of the current directory:
 ::      .\build_2008_x86
 ::      .\build_2010_x86
 ::      .\build_2008_x64
 ::      .\build_2010_x64
 ::
-:: Installs are steered to
+:: Installs are steered to subfolders
 ::      .\install_2008_x86
 ::      .\install_2010_x86
 ::      .\install_2008_x64
@@ -81,16 +82,18 @@ IF "%cli_build%"=="true" (
     call :build_qpid 2010 x86 "%keep_build%"
     call :build_qpid 2012 x86 "%keep_build%"
     call :build_qpid 2013 x86 "%keep_build%"
+    call :build_qpid 2015 x86 "%keep_build%"
     call :build_qpid 2008 x64 "%keep_build%"
     call :build_qpid 2010 x64 "%keep_build%"
     call :build_qpid 2012 x64 "%keep_build%"
     call :build_qpid 2013 x64 "%keep_build%"
+    call :build_qpid 2015 x64 "%keep_build%"
 )
 goto :eof
 
 :: build a qpid
 ::  %1 selects architecture x86 or x64
-::  %2 selects studio: 2008, 2010, 2012, or 2013
+::  %2 selects studio: 2008, 2010, 2012, 2013, or 2015
 ::  %3 true|false to keep build directory
 :build_qpid
 
@@ -130,7 +133,15 @@ if "%vsname%"=="2013" (
         SET MY_BOOST_ROOT=c:\boost
     ) else (
         echo "ERROR: Install a boost for VS2013 x64, please"
-        exit
+        exit /b 1
+    )
+)
+if "%vsname%"=="2015" (
+    if "%arch%" == "x86" (
+        SET MY_BOOST_ROOT=c:\boost
+    ) else (
+        echo "ERROR: Install a boost for VS2013 x64, please"
+        exit /b 1
     )
 )
 

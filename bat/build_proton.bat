@@ -21,10 +21,11 @@
 ::
 :: build_proton.bat
 :: Version 1.5 2015-07-09
+:: Version 1.6 2016-03-08 Add VS2015
 ::
-:: Usage: build_proton.bat INSTALL_ROOT_PATH [2008|2010|2012|2013 x64|x86 [any         [any]]]
-::                         %1                 %2                  %3       %4           %5
-::                                                                         keep build  keep install
+:: Usage: build_proton.bat INSTALL_ROOT_PATH [2008|2010|2012|2013|2015 x64|x86 [any         [any]]]
+::                         %1                 %2                       %3       %4           %5
+::                                                                              keep build  keep install
 :: A script to cmake/make/install proton on windows.
 ::
 :: This script expects to execute from the root of a proton checkout,
@@ -32,13 +33,13 @@
 ::
 :: It produces an installed directory that qpid can share to get 1.0 support.
 ::
-:: Cmake and the compiles will be in the current directory:
+:: Cmake and the compiles will be in subfolder of the current directory:
 ::      .\build_2008_x86
 ::      .\build_2010_x86
 ::      .\build_2008_x64
 ::      .\build_2010_x64
 ::
-:: Installs are steered to four directories under INSTALL_ROOT_PATH in %1.
+:: Installs are steered to sub directories under INSTALL_ROOT_PATH in %1.
 ::      %1%\install_2008_x86
 ::      %1%\install_2010_x86
 ::      %1%\install_2008_x64
@@ -99,10 +100,12 @@ IF "%cli_build%"=="true" (
     call :build_proton 2010 x86  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
     call :build_proton 2012 x86  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
     call :build_proton 2013 x86  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
+    call :build_proton 2015 x86  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
     call :build_proton 2008 x64  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
     call :build_proton 2010 x64  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
     call :build_proton 2012 x64  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
     call :build_proton 2013 x64  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
+    call :build_proton 2015 x64  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
 )
 goto :eof
 
@@ -127,16 +130,16 @@ set keep_install=%5
 set   build_dir=build_%vsname%_%arch%
 set install_dir=%INSTALL_ROOT_PATH%\install_%vsname%_%arch%
 
-REM VS2008 or VS2010 or VS2012 or VS2013, x86 or x64
+REM VS2008 or VS2010 or VS2012 or VS2013 or VS2015, x86 or x64
 if "%vsname%"=="2008" (
     if "%arch%" == "x86" (
         call "%VS90COMNTOOLS%..\..\VC\vcvarsall.bat" x86
-        if %errorlevel% neq 0 exit /b %errorlevel%
+        if ERRORLEVEL 1 exit /b 1
         set cmakegen="Visual Studio 9 2008"
         set proton_arch=Win32
     ) else (
         call "%VS90COMNTOOLS%..\..\VC\vcvarsall.bat" amd64
-        if %errorlevel% neq 0 exit /b %errorlevel%
+        if ERRORLEVEL 1 exit /b 1
         set cmakegen="Visual Studio 9 2008 Win64"
         set proton_arch=x64
     )
@@ -144,12 +147,12 @@ if "%vsname%"=="2008" (
 if "%vsname%"=="2010" (
     if "%arch%" == "x86" (
         call "%VS100COMNTOOLS%..\..\VC\vcvarsall.bat" x86
-        if %errorlevel% neq 0 exit /b %errorlevel%
+        if ERRORLEVEL 1 exit /b 1
         set cmakegen="Visual Studio 10"
         set proton_arch=Win32
     ) else (
         call "%VS100COMNTOOLS%..\..\VC\vcvarsall.bat" amd64
-        if %errorlevel% neq 0 exit /b %errorlevel%
+        if ERRORLEVEL 1 exit /b 1
         set cmakegen="Visual Studio 10 Win64"
         set proton_arch=x64
     )
@@ -157,12 +160,12 @@ if "%vsname%"=="2010" (
 if "%vsname%"=="2012" (
     if "%arch%" == "x86" (
         call "%VS110COMNTOOLS%..\..\VC\vcvarsall.bat" x86
-        if %errorlevel% neq 0 exit /b %errorlevel%
+        if ERRORLEVEL 1 exit /b 1
         set cmakegen="Visual Studio 11"
         set proton_arch=Win32
     ) else (
         call "%VS110COMNTOOLS%..\..\VC\vcvarsall.bat" amd64
-        if %errorlevel% neq 0 exit /b %errorlevel%
+        if ERRORLEVEL 1 exit /b 1
         set cmakegen="Visual Studio 11 Win64"
         set proton_arch=x64
     )
@@ -170,13 +173,26 @@ if "%vsname%"=="2012" (
 if "%vsname%"=="2013" (
     if "%arch%" == "x86" (
         call "%VS120COMNTOOLS%..\..\VC\vcvarsall.bat" x86
-        if %errorlevel% neq 0 exit /b %errorlevel%
+        if ERRORLEVEL 1 exit /b 1
         set cmakegen="Visual Studio 12"
         set proton_arch=Win32
     ) else (
         call "%VS120COMNTOOLS%..\..\VC\vcvarsall.bat" amd64
-        if %errorlevel% neq 0 exit /b %errorlevel%
+        if ERRORLEVEL 1 exit /b 1
         set cmakegen="Visual Studio 12 Win64"
+        set proton_arch=x64
+    )
+)
+if "%vsname%"=="2015" (
+    if "%arch%" == "x86" (
+        call "%VS140COMNTOOLS%..\..\VC\vcvarsall.bat" x86
+        if ERRORLEVEL 1 exit /b 1
+        set cmakegen="Visual Studio 14 2015"
+        set proton_arch=Win32
+    ) else (
+        call "%VS140COMNTOOLS%..\..\VC\vcvarsall.bat" amd64
+        if ERRORLEVEL 1 exit /b 1
+        set cmakegen="Visual Studio 14 2015 Win64"
         set proton_arch=x64
     )
 )
@@ -211,10 +227,16 @@ cmake -G %cmakegen% -DCMAKE_INSTALL_PREFIX=%install_dir% -DGEN_JAVA=No -DBUILD_J
 
 :: build/install proton
 devenv proton.sln /build "Debug|%proton_arch%"          /project INSTALL
-if %errorlevel% neq 0 (echo FAIL FAIL FAIL: Studio failure building DEBUG %build_dir%)
+if ERRORLEVEL 1 (
+    echo FAIL FAIL FAIL: Studio failure building DEBUG %build_dir%
+    exit /b 1
+)
 
 devenv proton.sln /build "RelWithDebInfo|%proton_arch%" /project INSTALL
-if %errorlevel% neq 0 (echo FAIL FAIL FAIL: Studio failure building RELWITHDEBINFO %build_dir%)
+if ERRORLEVEL 1 (
+    echo FAIL FAIL FAIL: Studio failure building RELWITHDEBINFO %build_dir%
+    exit /b 1
+)
 
 :: ascend from build area
 popd
@@ -243,11 +265,11 @@ REM
 REM Usage
 REM
 :Usage
-echo Usage: build_proton.bat INSTALL_ROOT_PATH [2008,2010,2012,2013 x64,x86 [any         [any]]]
-echo                         arg1               arg2                arg3     arg4         arg5
-echo                                                                         keep build  keep install
+echo Usage: build_proton.bat INSTALL_ROOT_PATH [2008,2010,2012,2013,2015 x64,x86 [any         [any]]]
+echo                         arg1               arg2                     arg3     arg4         arg5
+echo                                                                              keep build  keep install
 echo     arg1 INSTALL_ROOT_PATH [required] may be any absolute or relative path including '.' .
-echo     arg2 CLI_COMPILER      [optional] may be 2008, 2010, 2012, or 2013. If absent the all are compiled.
+echo     arg2 CLI_COMPILER      [optional] may be 2008, 2010, 2012, 2013, or 2015. If absent the all are compiled.
 echo     arg3 CLI_ARCH                     may be x86 or x64. If absent then all are compied.
 echo     arg4 KEEP_BUILD        [optional] any text. If present then build directory is used and not flushed.
 echo     arg5 KEEP_INSTALL      [optional] any text. If present then install directory is used and not flushed.
