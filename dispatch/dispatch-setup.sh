@@ -9,18 +9,19 @@
 #  > ./dispatch_setup.sh build
 #
 # A blank arg 1 just sets the enviornment. Remember to dot source it!
-# Arg1 == build performs a complete rebuild.
+# A non-blank arg 1 performs a complete rebuild.
 #
 # And then with the environment set up run dispatch in kdevelop:
 #  > kdevelop &
 # Run qdrouterd with:
 #  Project Target : qpid-dispatch/router/qdrouterd
 #  Executable     : /home/<>/git/qpid-dispatch
-#  Arguments      : -c /home/<>/test-router.conf -I /home/<>/git/qpid-dispatch/ptyhon
+#  Arguments      : -c /home/<>/test-router.conf -I /home/<>/git/qpid-dispatch/python
 #  Working Dir    : /home/<>/git/qpid-dispatch/build
 #
 export        PROTON=~/git/qpid-proton
-export          QPID=~/git/qpid
+export    QPIDPYTHON=~/git/qpid-python
+export       QPIDCPP=~/git/qpid-cpp
 export      DISPATCH=~/git/qpid-dispatch
 export INSTALLPREFIX=/opt/local
 
@@ -45,18 +46,17 @@ merge_paths() {
     echo $newpath | sed 's/^://' # Remove leading :
 }
 
-thearg=${1:-setupenv}
-if [ "$1" == "build" ]; then
+if [ ! -z "$1" ]; then
     # Go somewhere safe
     cd ~
 
     # Flush old builds
     rm -rf ${INSTALLPREFIX}
     rm -rf ${PROTON}/build
-    rm -rf ${QPID}/qpid/cpp/build
+    rm -rf ${QPIDCPP}/build
     rm -rf ${DISPATCH}/build
     mkdir ${PROTON}/build
-    mkdir ${QPID}/qpid/cpp/build
+    mkdir ${QPIDCPP}/build
     mkdir ${DISPATCH}/build
     
     # build proton
@@ -64,24 +64,28 @@ if [ "$1" == "build" ]; then
     build_log ${INSTALLPREFIX}
     cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=${INSTALLPREFIX} ..
     make -j 8 install
+
+    # install python
+    cd ${QPIDPYTHON}
+    python setup.py install --prefix=${INSTALLPREFIX}
     
     # build qpid
-    cd ${QPID}/qpid/cpp/build
+    cd ${QPIDCPP}/build
     build_log ${INSTALLPREFIX}
     cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=${INSTALLPREFIX} -DBUILD_DOCS=No ..
     make -j 8 install
 
+    # install qpid giblets
+#   cd ${QPID}/qpid/tools;      ./setup.py install --prefix ${INSTALLPREFIX} # Broke on 2016-05-17
+#   cd ${QPID}/qpid/python;     ./setup.py install --prefix ${INSTALLPREFIX} # Skipped on 5-17 for debug
+#   cd ${QPID}/qpid/extras/qmf; ./setup.py install --prefix ${INSTALLPREFIX} # Broke on 2016-??-??
+
     # build dispatch
     cd ${DISPATCH}/build
     build_log ${INSTALLPREFIX}
-    cmake -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=${INSTALLPREFIX} ..
+    cmake -G "Eclipse CDT4 - Unix Makefiles" -DCMAKE_BUILD_TYPE=Debug -DCMAKE_INSTALL_PREFIX=${INSTALLPREFIX} ..
     # Don't install. This allows running from build area.
     make -j 8
-
-    # install qpid giblets
-    cd ${QPID}/qpid/tools;      ./setup.py install --prefix ${INSTALLPREFIX}
-    cd ${QPID}/qpid/python;     ./setup.py install --prefix ${INSTALLPREFIX}
-    cd ${QPID}/qpid/extras/qmf; ./setup.py install --prefix ${INSTALLPREFIX}
 
     cd ${DISPATCH}/build
 fi
