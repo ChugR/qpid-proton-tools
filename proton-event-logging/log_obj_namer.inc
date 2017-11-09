@@ -168,6 +168,7 @@ const char * log_obj_name_of(log_obj_namers_t *name_pool, void *ptr) {
         } else {
             strncpy(curr->name, name_pool->prefix, strlen(name_pool->prefix));
             sprintf(&curr->name[strlen(name_pool->prefix)], "%d", name_pool->next_id++);
+            printf("log_obj_name_of mapped address %p to name %s\n", ptr, curr->name);
         }
         curr->obj_ptr = ptr;
         if (last == 0)
@@ -177,6 +178,28 @@ const char * log_obj_name_of(log_obj_namers_t *name_pool, void *ptr) {
     }
     MUTEX_UNLOCK(name_pool->lock);
     return curr->name;
+}
+
+
+/* Given the name of an object namer and a pointer
+ *  return the short name or add a new name.
+ * Hack alert, the object namers are named:
+ *  transport, session, link, linkname, delivery, and content.
+ */
+const char * log_obj_find_name(const char *log_obj, void *ptr) {
+    if (strcmp(log_obj, "transport") == 0)
+        return log_obj_name_of(log_transports, ptr);
+    if (strcmp(log_obj, "session") == 0)
+        return log_obj_name_of(log_sessions, ptr);
+    if (strcmp(log_obj, "link") == 0)
+        return log_obj_name_of(log_links, ptr);
+    if (strcmp(log_obj, "linkname") == 0)
+        return log_obj_name_of(log_linknames, ptr);
+    if (strcmp(log_obj, "delivery") == 0)
+        return log_obj_name_of(log_deliveries, ptr);
+    if (strcmp(log_obj, "content") == 0)
+        return log_obj_name_of(log_msg_content, ptr);
+    return "Unknown log_obj_find_name log_obj_namer";
 }
 
 
