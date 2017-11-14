@@ -22,8 +22,9 @@
 :: build_proton.bat
 :: Version 1.5 2015-07-09
 :: Version 1.6 2016-03-08 Add VS2015
+:: Version 1.7 2017-10-25 Add VS2017, Remove VS2008
 ::
-:: Usage: build_proton.bat INSTALL_ROOT_PATH [2008|2010|2012|2013|2015 x64|x86 [any         [any]]]
+:: Usage: build_proton.bat INSTALL_ROOT_PATH [2010|2012|2013|2015|2017 x64|x86 [any         [any]]]
 ::                         %1                 %2                       %3       %4           %5
 ::                                                                              keep build  keep install
 :: A script to cmake/make/install proton on windows.
@@ -34,15 +35,11 @@
 :: It produces an installed directory that qpid can share to get 1.0 support.
 ::
 :: Cmake and the compiles will be in subfolder of the current directory:
-::      .\build_2008_x86
 ::      .\build_2010_x86
-::      .\build_2008_x64
 ::      .\build_2010_x64
 ::
 :: Installs are steered to sub directories under INSTALL_ROOT_PATH in %1.
-::      %1%\install_2008_x86
 ::      %1%\install_2010_x86
-::      %1%\install_2008_x64
 ::      %1%\install_2010_x64
 ::
 ::   The install directories are suitable to be consumed in a
@@ -59,7 +56,7 @@
 
 :: Check that CD is a proton checkout
 IF NOT exist .\proton-c (echo This script must execute from a proton checkout root && pause && goto :eof)
-IF NOT exist .\proton-j (echo This script must execute from a proton checkout root && pause && goto :eof)
+IF NOT exist .\proton-j (echo This script must execute from a proton checkout root. If this is a distribution kit then proton-j is absent. Just 'mkdir proton-j' and build again. && pause && goto :eof)
 
 :: Check that the INSTALL_ROOT_PATH is specified
 IF "%1"=="" (echo You must specify an INSTALL_ROOT_PATH && GOTO :Usage)
@@ -96,23 +93,23 @@ IF DEFINED cli_compiler IF DEFINED cli_arch (SET cli_build=true)
 IF "%cli_build%"=="true" (
     call :build_proton %cli_compiler% %cli_arch% %INSTALL_ROOT% "%keep_build%" "%keep_install%"
 ) ELSE (
-    call :build_proton 2008 x86  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
     call :build_proton 2010 x86  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
     call :build_proton 2012 x86  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
     call :build_proton 2013 x86  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
     call :build_proton 2015 x86  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
-    call :build_proton 2008 x64  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
+    call :build_proton 2017 x86  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
     call :build_proton 2010 x64  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
     call :build_proton 2012 x64  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
     call :build_proton 2013 x64  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
     call :build_proton 2015 x64  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
+    call :build_proton 2017 x64  %INSTALL_ROOT% "%keep_build%" "%keep_install%"
 )
 goto :eof
 
 ::
 :: build a proton
 ::  %1 selects architecture x86 or x64
-::  %2 selects studio 2008 or 2010 or 2012 or 2013
+::  %2 selects studio  2010 or 2012 or 2013 or 2015 or 2017
 ::  %3 is fully qualified install root path with no trailing slash
 ::  %4 true|false to keep build directory
 ::  %5 true|false to keep install directory
@@ -130,20 +127,7 @@ set keep_install=%5
 set   build_dir=build_%vsname%_%arch%
 set install_dir=%INSTALL_ROOT_PATH%\install_%vsname%_%arch%
 
-REM VS2008 or VS2010 or VS2012 or VS2013 or VS2015, x86 or x64
-if "%vsname%"=="2008" (
-    if "%arch%" == "x86" (
-        call "%VS90COMNTOOLS%..\..\VC\vcvarsall.bat" x86
-        if ERRORLEVEL 1 exit /b 1
-        set cmakegen="Visual Studio 9 2008"
-        set proton_arch=Win32
-    ) else (
-        call "%VS90COMNTOOLS%..\..\VC\vcvarsall.bat" amd64
-        if ERRORLEVEL 1 exit /b 1
-        set cmakegen="Visual Studio 9 2008 Win64"
-        set proton_arch=x64
-    )
-)
+REM VS2010 or VS2012 or VS2013 or VS2015 or VS2017, x86 or x64
 if "%vsname%"=="2010" (
     if "%arch%" == "x86" (
         call "%VS100COMNTOOLS%..\..\VC\vcvarsall.bat" x86
@@ -193,6 +177,19 @@ if "%vsname%"=="2015" (
         call "%VS140COMNTOOLS%..\..\VC\vcvarsall.bat" amd64
         if ERRORLEVEL 1 exit /b 1
         set cmakegen="Visual Studio 14 2015 Win64"
+        set proton_arch=x64
+    )
+)
+if "%vsname%"=="2017" (
+    if "%arch%" == "x86" (
+        call "%VS150COMNTOOLS%..\..\VC\Auxiliary\build\vcvarsall.bat" x86
+        if ERRORLEVEL 1 exit /b 1
+        set cmakegen="Visual Studio 15 2017"
+        set proton_arch=Win32
+    ) else (
+        call "%VS150COMNTOOLS%..\..\VC\Auxiliary\build\vcvarsall.bat" amd64
+        if ERRORLEVEL 1 exit /b 1
+        set cmakegen="Visual Studio 15 2017 Win64"
         set proton_arch=x64
     )
 )
