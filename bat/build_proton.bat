@@ -55,8 +55,8 @@
 :: Hacky external CR_UNATTENDED inhibits pause before each build.
 
 :: Check that CD is a proton checkout
-IF NOT exist .\proton-c (echo This script must execute from a proton checkout root && pause && goto :eof)
-IF NOT exist .\proton-j (echo This script must execute from a proton checkout root. If this is a distribution kit then proton-j is absent. Just 'mkdir proton-j' and build again. && pause && goto :eof)
+:: IF NOT exist .\proton-c (echo This script must execute from a proton checkout root && pause && goto :eof)
+:: IF NOT exist .\proton-j (echo This script must execute from a proton checkout root. If this is a distribution kit then proton-j is absent. Just 'mkdir proton-j' and build again. && pause && goto :eof)
 
 :: Check that the INSTALL_ROOT_PATH is specified
 IF "%1"=="" (echo You must specify an INSTALL_ROOT_PATH && GOTO :Usage)
@@ -181,6 +181,7 @@ if "%vsname%"=="2015" (
     )
 )
 if "%vsname%"=="2017" (
+    set "VSCMD_START_DIR=%CD%"
     if "%arch%" == "x86" (
         call "%VS150COMNTOOLS%..\..\VC\Auxiliary\build\vcvarsall.bat" x86
         if ERRORLEVEL 1 exit /b 1

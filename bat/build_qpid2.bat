@@ -19,35 +19,36 @@
 ::
 
 ::
-:: build-qpid-cpp.bat
+:: build_qpid.bat
 :: Version 1.5 2015-07-09
-:: Version 1.6 2016-03-08 Add VS2015
-:: Version 1.7 2016-08-02 From build_qpid now build-qpid-cpp new repo
-:: Version 1.8 2017-11-15 Add VS2017, retire VS2008
 ::
-:: Usage: build-qpid-cpp.bat [2010|2012|2013|2015|2017 x64|x86 [any        ]]
-::                            %1                       %2       %3
-::                                                              keep build
+:: Usage: build_qpid.bat [2008|2010|2012|2013 x64|x86 [any        ]]
+::                        %1                  %2       %3
+::                                                     keep build
 :: A script to cmake/make/install qpid on windows.
 ::
 :: Note that users must edit this script to locate BOOST.
 ::
-:: This script expects to execute from the root of a qpid-cpp checkout
+:: This script expects to execute from the root of a qpid checkout,
+:: the directory that holds cpp and wcf.
 ::
 :: It assumes an installed directory that may be prepopulated with proton for
 :: AMQP 1.0 support.
 ::
-:: Cmake and the compiles will be in subfolder of the current directory:
+:: Cmake and the compiles will be in the current directory:
+::      .\build_2008_x86
 ::      .\build_2010_x86
+::      .\build_2008_x64
 ::      .\build_2010_x64
 ::
-:: Installs are steered to subfolders
+:: Installs are steered to
+::      .\install_2008_x86
 ::      .\install_2010_x86
+::      .\install_2008_x64
 ::      .\install_2010_x64
 
 :: Check that CD is a qpid checkout
-IF NOT exist .\bindings (echo This script must execute from a qpid-cpp checkout root with cpp folder in it && pause && goto :eof)
-IF NOT exist .\rubygen  (echo This script must execute from a qpid-cpp checkout root with cpp folder in it && pause && goto :eof)
+IF NOT exist .\cpp (echo This script must execute from a qpid checkout root with cpp folder in it && pause && goto :eof)
 
 :: Check for help
 IF "%1"==""      GOTO :Usage
@@ -76,22 +77,20 @@ IF DEFINED cli_compiler IF DEFINED cli_arch (SET cli_build=true)
 IF "%cli_build%"=="true" (
     call :build_qpid %cli_compiler% %cli_arch% "%keep_build%"
 ) ELSE (
+    call :build_qpid 2008 x86 "%keep_build%"
     call :build_qpid 2010 x86 "%keep_build%"
     call :build_qpid 2012 x86 "%keep_build%"
     call :build_qpid 2013 x86 "%keep_build%"
-    call :build_qpid 2015 x86 "%keep_build%"
-    call :build_qpid 2017 x86 "%keep_build%"
+    call :build_qpid 2008 x64 "%keep_build%"
     call :build_qpid 2010 x64 "%keep_build%"
     call :build_qpid 2012 x64 "%keep_build%"
     call :build_qpid 2013 x64 "%keep_build%"
-    call :build_qpid 2015 x64 "%keep_build%"
-    call :build_qpid 2017 x64 "%keep_build%"
 )
 goto :eof
 
 :: build a qpid
 ::  %1 selects architecture x86 or x64
-::  %2 selects studio: 2008, 2010, 2012, 2013, or 2015
+::  %2 selects studio: 2008, 2010, 2012, or 2013
 ::  %3 true|false to keep build directory
 :build_qpid
 
@@ -105,6 +104,13 @@ set   build_dir=build_%vsname%_%arch%
 set install_dir=.\install_%vsname%_%arch%
 
 :: Select a boost root
+if "%vsname%"=="2008" (
+    if "%arch%" == "x86" (
+        SET MY_BOOST_ROOT=c:\boost-win-1.47-32bit-vs2008
+    ) else (
+        SET MY_BOOST_ROOT=c:\boost-win-1.47-64bit-vs2008
+    )
+)
 if "%vsname%"=="2010" (
     if "%arch%" == "x86" (
         SET MY_BOOST_ROOT=c:\boost-win-1.47-32bit-vs2010
@@ -121,25 +127,10 @@ if "%vsname%"=="2012" (
 )
 if "%vsname%"=="2013" (
     if "%arch%" == "x86" (
-        SET MY_BOOST_ROOT=c:\boost
+        SET MY_BOOST_ROOT=c:\boost-win-1.53-32bit-vs2012
     ) else (
         echo "ERROR: Install a boost for VS2013 x64, please"
-        exit /b 1
-    )
-)
-if "%vsname%"=="2015" (
-    if "%arch%" == "x86" (
-        SET MY_BOOST_ROOT=c:\boost
-    ) else (
-        SET MY_BOOST_ROOT=D:\boost\boost-win-1.65-64bit-vs2015
-    )
-)
-if "%vsname%"=="2017" (
-    if "%arch%" == "x86" (
-        echo "ERROR: Install a boost for VS2017 x86, please"
-        exit /b 1
-    ) else (
-        SET MY_BOOST_ROOT=D:\boost\boost-win-1.65-64bit-vs2015
+        exit
     )
 )
 
@@ -160,8 +151,8 @@ IF NOT DEFINED CR_UNATTENDED (echo Press Enter to continue, Ctrl-C to abort && p
 if   %keep_build%=="false" call :MakeNewDir %build_dir%
 :: Note don't recreate install dir as that kills the intalled proton
 
-:: use built-in procedure to run cmake and churn out supporting scripts
-powershell  -ExecutionPolicy unrestricted -File B:\configure-windows.ps1 %vsname%_%arch% %MY_BOOST_ROOT%
+:: use build-in procedure to run cmake and churn out supporting scripts
+powershell .\cpp\bindings\qpid\dotnet\configure-windows.ps1 %vsname%_%arch% %MY_BOOST_ROOT%
 cd %build_dir%
 call make-install
 
@@ -189,10 +180,10 @@ REM
 REM Usage
 REM
 :Usage
-echo Usage: build-qpid-cpp.bat [2010,2012,2013,2015,2017 x64,x86 [any]]
-echo                            arg1                     arg2     arg3
-echo                                                              keep build
-echo     arg1 CLI_COMPILER      [optional] may be 2010, 2012, 2013, 2015, 2017. If absent the all are compiled.
+echo Usage: build_qpid.bat [2008,2010,2012,2013 x64,x86 [any]]
+echo                        arg1                arg2     arg3
+echo                                                     keep build
+echo     arg1 CLI_COMPILER      [optional] may be 2008, 2010, 2012, or 2013. If absent the all are compiled.
 echo     arg2 CLI_ARCH                     may be x86 or x64. If absent then all are compied.
 echo     arg3 KEEP_BUILD        [optional] any text. If present then build directory is used and not flushed.
 echo.     
