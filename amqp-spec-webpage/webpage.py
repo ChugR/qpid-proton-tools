@@ -38,7 +38,8 @@
 #
 
 from __future__ import print_function
-import sys, optparse, os, time
+import sys, os
+import cgi
 import xml.etree.ElementTree as ET
 
 #
@@ -128,6 +129,7 @@ class XmlStore():
         self.sections = self.root.findall("section")
         self.types = []
         self.definitions = []
+        self.pictures = []
         for section in self.sections:
             ltypes = section.findall("type")
             for type in ltypes:
@@ -161,7 +163,22 @@ class XmlStore():
                 definition.text = self.rootName + ":" + section.get("name")
                 definitionsAll.append(definition)
             self.definitions += section.findall("definition")
-        
+
+            sTitle = section.get("title")
+            if sTitle is None:
+                sTitle = ""
+            docs = section.findall("doc")
+            for doc in docs:
+                dTitle = doc.get("title")
+                if dTitle is None:
+                    dTitle = ""
+                pics = doc.findall("picture")
+                for pic in pics:
+                    pTitle = pic.get("title")
+                    #print ("%s : %s : %s : %s" % (self.rootName, sTitle, dTitle, pTitle))
+                    pic.caption = (self.rootName.capitalize() + " : " + sTitle + " : " + dTitle).strip()
+                    self.pictures.append(pic)
+
     def trimNamespace(self, node):
         ''' Strip out the "{amqp namespace}" ahead of each tag'''
         pos = node.tag.find("}")
@@ -170,11 +187,32 @@ class XmlStore():
         for child in node:
             self.trimNamespace(child)
 
+    def showPics(self):
+        nodeName = self.rootName.capitalize() + "Diag"
+        print("<a name=\"%sDiagrams\"</a><br>" % self.rootName.capitalize())
+        print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%s%s<br>" %
+              ((nodeName), lozenge(), nbsp(), self.rootName.capitalize() + " Diagrams"))
+        print("<div style=\"display:none; width=100%%; margin-bottom:2px; margin-left:10px\" id=\"%s\">" %
+              (nodeName))
+        for i in range(len(self.pictures)):
+            pic = self.pictures[i]
+            print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%s<strong>%s</strong><br>" %
+                  ((nodeName + str(i)), lozenge(), nbsp(), pic.caption))
+            print("<div style=\"display:none; width=100%%; margin-bottom:2px; margin-left:10px\" id=\"%s\">" %
+                  (nodeName + str(i)))
+            print("<pre>%s</pre><br>" % cgi.escape(pic.text))
+            print("</div>")
+        print("</div>")
+        print("<br>")
+
+
 xmlTypes        = XmlStore("types.xml")
 xmlTransport    = XmlStore("transport.xml")
 xmlMessaging    = XmlStore("messaging.xml")
-xmlSecurity     = XmlStore("security.xml")
 xmlTransactions = XmlStore("transactions.xml")
+xmlSecurity     = XmlStore("security.xml")
+
+xmlStoreList = [xmlTypes, xmlTransport, xmlMessaging, xmlTransactions, xmlSecurity]
 
 #
 # Utilities
@@ -322,10 +360,16 @@ def print_start_body():
     print("{")
     print("  show_node('Constants');")
     print("  show_node('PrimTypeName');")
+    print("  show_node('PrimTypeCode');")
     print("  show_node('DescrTypes');")
     print("  show_node('EnumTypes');")
     print("  show_node('RestrTypes');")
     print("  show_node('ProvTypes');")
+    print("  show_node('TypesDiag');")
+    print("  show_node('TransportDiag');")
+    print("  show_node('MessagingDiag');")
+    print("  show_node('TransactionsDiag');")
+    print("  show_node('SecurityDiag');")
     print("  show_node('TypIndex');")
     print("  show_node('FldIndex');")
     print("  show_node('EnuIndex');")
@@ -341,10 +385,16 @@ def print_start_body():
     print("{")
     print("  hide_node('Constants');")
     print("  hide_node('PrimTypeName');")
+    print("  hide_node('PrimTypeCode');")
     print("  hide_node('DescrTypes');")
     print("  hide_node('EnumTypes');")
     print("  hide_node('RestrTypes');")
     print("  hide_node('ProvTypes');")
+    print("  hide_node('TypesDiag');")
+    print("  hide_node('TransportDiag');")
+    print("  hide_node('MessagingDiag');")
+    print("  hide_node('TransactionsDiag');")
+    print("  hide_node('SecurityDiag');")
     print("  hide_node('TypIndex');")
     print("  hide_node('FldIndex');")
     print("  hide_node('EnuIndex');")
@@ -372,17 +422,30 @@ def print_start_body():
     print ("}")
     print ("</style>")
 
+
+    print("<style>")
+    print("pre {")
+    print("  font-family:monospace,monospace;")
+    print("  font-size:1em;")
+    print("}")
+    print("</style>")
+
+
 #
 #
 def print_toc():
     # Table of Contents
     print("<a href=\"#Constants\">Constants</a><br>")
+
     print("<a href=\"#Types\">Types</a><br>")
     print("%s%s<a href=\"#PrimitiveTypes\">Primitive Types</a><br>" % (nbsp(), nbsp()))
     print("%s%s<a href=\"#EnumeratedTypes\">Enumerated Types</a><br>" % (nbsp(), nbsp()))
     print("%s%s<a href=\"#RestrictedTypes\">Restricted Types</a><br>" % (nbsp(), nbsp()))
     print("%s%s<a href=\"#DescribedTypes\">Described Types</a><br>" % (nbsp(), nbsp()))
     print("%s%s<a href=\"#ProvidedTypes\">Provided Types</a><br>" % (nbsp(), nbsp()))
+
+    print("<a href=\"#Diagrams\">Diagrams</a><br>")
+
     print("<a href=\"#Indices\">Indices</a><br>")
     print("%s%s<a href=\"#TypeIndex\">Types</a><br>" % (nbsp(), nbsp()))
     print("%s%s<a href=\"#FieldIndex\">Fields</a><br>" % (nbsp(), nbsp()))
@@ -402,7 +465,7 @@ def print_constants():
     print("<a name=\"Constants\"></a>")
     print("<h2>Constants</h2>")
     print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sConstants<br>" % ("Constants", lozenge(), nbsp()))
-    print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"Constants\">")
+    print("<div width=\"100%%\" style=\"display:block\"  margin-bottom:\"2px\" id=\"Constants\">")
     print("<table>")
     print("<tr>")
     print(" <th>Section</th>")
@@ -459,7 +522,7 @@ def print_primitive_types():
     print("<a name=\"PrimitiveTypes\"></a>")
     print("<h3>Primitive Types</h3>")
     print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sby Name<br>" % ("PrimTypeName", lozenge(), nbsp()))
-    print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"PrimTypeName\">")
+    print("<div width=\"100%%\" style=\"display:block\"  margin-bottom:\"2px\" id=\"PrimTypeName\">")
     print("<table>")
     print("<tr>")
     print(" <th>Section</th>")
@@ -505,7 +568,7 @@ def print_primitive_types():
 
     # print types sorted by class code
     print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sby Code<br>" % ("PrimTypeCode", lozenge(), nbsp()))
-    print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"PrimTypeCode\">")
+    print("<div width=\"100%%\" style=\"display:block\"  margin-bottom:\"2px\" id=\"PrimTypeCode\">")
     print("<table>")
     print("<tr>")
     print(" <th>Section</th>")
@@ -565,7 +628,7 @@ def print_described_types():
     print("<a name=\"DescribedTypes\"></a>")
     print("<h3>Described Types</h3>")
     print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sDescribed Types<br>" % ("DescrTypes", lozenge(), nbsp()))
-    print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"DescrTypes\">")
+    print("<div width=\"100%%\" style=\"display:block\"  margin-bottom:\"2px\" id=\"DescrTypes\">")
     print("<table>")
     print("<tr>")
     print(" <th>Section</th>")
@@ -603,7 +666,7 @@ def print_described_types():
         print("<a name=\"details_%s\"></a>" % descr_typename)
         print("%s%s<a href=\"javascript:toggle_node('%s')\"> %s </a>%s %s<strong><a href=\"#TYPE_%s\">%s</a></strong><br>" % \
               (nbsp(), nbsp(), "DT"+descr_typename, lozenge(), nbsp(), "Described type: " + section + " - ", descr_typename, descr_typename))
-        print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"%s\">" % ("DT"+descr_typename))
+        print("<div width=\"100%%\" style=\"display:block\"  margin-bottom:\"2px\" id=\"%s\">" % ("DT"+descr_typename))
         print("<table>")
         print("<tr>")
         print(" <th>Tag</th>")
@@ -681,7 +744,7 @@ def print_enumerated_types():
     print("<a name=\"EnumeratedTypes\"></a>")
     print("<h3>Enumerated Types</h3>")
     print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sEnumerated Types<br>" % ("EnumTypes", lozenge(), nbsp()))
-    print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"EnumTypes\">")
+    print("<div width=\"100%%\" style=\"display:block\"  margin-bottom:\"2px\" id=\"EnumTypes\">")
     print("<table>")
     print("<tr>")
     print(" <th>Section</th>")
@@ -712,7 +775,7 @@ def print_enumerated_types():
         print("<a name=\"details_%s\"></a>" % (enum_typename))
         print("%s%s<a href=\"javascript:toggle_node('%s')\"> %s </a>%s %s<strong><a href=\"#TYPE_%s\">%s</a></strong><br>" % \
               (nbsp(), nbsp(), "ET"+enum_typename, lozenge(), nbsp(), "Enumerated type: " + section + " - ", enum_typename, enum_typename))
-        print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"%s\">" % ("ET"+enum_typename))
+        print("<div width=\"100%%\" style=\"display:block\"  margin-bottom:\"2px\" id=\"%s\">" % ("ET"+enum_typename))
         print("<table>")
         print("<tr>")
         print(" <th>Name</th>")
@@ -743,7 +806,7 @@ def print_restricted_types():
     print("<a name=\"RestrictedTypes\"></a>")
     print("<h3>Restricted Types</h3>")
     print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sRestricted Types<br>" % ("RestrTypes", lozenge(), nbsp()))
-    print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"RestrTypes\">")
+    print("<div width=\"100%%\" style=\"display:block\"  margin-bottom:\"2px\" id=\"RestrTypes\">")
     print("<table>")
     print("<tr>")
     print(" <th>Section</th>")
@@ -774,7 +837,7 @@ def print_provided_types():
     print("<a name=\"ProvidedTypes\"></a>")
     print("<h3>Provided Types</h3>")
     print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sProvided Types<br>" % ("ProvTypes", lozenge(), nbsp()))
-    print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"ProvTypes\">")
+    print("<div width=\"100%%\" style=\"display:block\"  margin-bottom:\"2px\" id=\"ProvTypes\">")
     print("<table>")
     print("<tr>")
     print(" <th>Provided Type</th>")
@@ -799,6 +862,18 @@ def print_provided_types():
         
 #
 #
+def print_asciiart():
+    print("<a name=\"Diagrams\"></a>")
+    print("<h2>Diagrams</h2>")
+    print("These diagrams may not make sense when taken out of the context of the ")
+    print("<a href=\"http://docs.oasis-open.org/amqp/core/v1.0/os/amqp-core-overview-v1.0-os.html\">")
+    print("AMQP 1.0 Specification</a>. Please refer to the spec to get the complete narrative.<br>")
+    for x in xmlStoreList:
+        x.showPics()
+
+
+#
+#
 def print_type_index():
     typeNameIndex.sort()
     print("<a name=\"Indices\"></a>")
@@ -806,7 +881,7 @@ def print_type_index():
     print("<a name=\"TypeIndex\"></a>")
     print("<h3>Type Index</h3>")
     print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sType Index<br>" % ("TypIndex", lozenge(), nbsp()))
-    print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"TypIndex\">")
+    print("<div width=\"100%%\" style=\"display:block\"  margin-bottom:\"2px\" id=\"TypIndex\">")
     print("<table>")
     print("<tr>")
     print(" <th>Type Name</th>")
@@ -837,7 +912,7 @@ def print_field_index():
     print("<a name=\"FieldIndex\"></a>")
     print("<h3>Field Index</h3>")
     print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sField Index<br>" % ("FldIndex", lozenge(), nbsp()))
-    print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"FldIndex\">")
+    print("<div width=\"100%%\" style=\"display:block\"  margin-bottom:\"2px\" id=\"FldIndex\">")
     print("<table>")
     print("<tr>")
     print(" <th>Field Name</th>")
@@ -869,7 +944,7 @@ def print_enumeration_index():
     print("<a name=\"EnumerationIndex\"></a>")
     print("<h3>Enumeration Index</h3>")
     print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sEnumeration Index<br>" % ("EnuIndex", lozenge(), nbsp()))
-    print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"EnuIndex\">")
+    print("<div width=\"100%%\" style=\"display:block\"  margin-bottom:\"2px\" id=\"EnuIndex\">")
     print("<table>")
     print("<tr>")
     print(" <th>Enum Value</th>")
@@ -901,7 +976,7 @@ def print_grand_index():
     print("<a name=\"GrandIndex\"></a>")
     print("<h3>Grand Index</h3>")
     print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sGrand Index<br>" % ("GndIndex", lozenge(), nbsp()))
-    print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"GndIndex\">")
+    print("<div width=\"100%%\" style=\"display:block\"  margin-bottom:\"2px\" id=\"GndIndex\">")
     print("<table>")
     print("<tr>")
     print(" <th>Name</th>")
@@ -1002,7 +1077,7 @@ def print_xref_index():
     print("<a name=\"XrefIndex3\"></a>")
     print("<h3>Cross Reference Index</h3>")
     print("<a href=\"javascript:toggle_node('%s')\"> %s </a>%sType Cross Reference<br>" % ("XrefIndex", lozenge(), nbsp()))
-    print("<div width=\"100%%\" style=\"display:none\"  margin-bottom:\"2px\" id=\"XrefIndex\">")
+    print("<div width=\"100%%\" style=\"display:block\"  margin-bottom:\"2px\" id=\"XrefIndex\">")
     print("<table>")
     print("<tr>")
     print(" <th>Referenced Type</th>")
@@ -1078,12 +1153,12 @@ def main_except(argv):
     print_restricted_types()
     print_described_types()
     print_provided_types()
+    print_asciiart()
     print_type_index()
     print_field_index()
     print_enumeration_index()
     print_grand_index()
     print_xref_index()
-    
     print_end_body()
 
     stats.statCheck("nConstants", 13)
