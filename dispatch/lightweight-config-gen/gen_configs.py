@@ -24,7 +24,7 @@ Swiped mostly from qpid-dispatch/tests
 Emit config files:
  * Use fixed port numbers
  * Select the host on which each router runs
- * Execute the script to generate the config in current directory
+ * Execute the script to generate the config in timestamped subdirectory
 
  * To clean everything back to scratch:
    git clean -dfx
@@ -121,7 +121,6 @@ class Qdrouterd:
     def get_config(self):
         return str(self.qconfig)
 
-
 class Ports:
     """Dish out port numbers in sequence"""
 
@@ -129,13 +128,39 @@ class Ports:
         self.port = 21000
         self.port_scoreboard = []
 
-    def get_port(self, who=''):
-        self.port_scoreboard.append("port %d - %s" % (self.port, who))
+    def get_port(self, router, description):
+        self.port_scoreboard.append((self.port, router, description))
         self.port += 1
         return self.port - 1
 
-    def show_ports(self):
-        return "\n".join(self.port_scoreboard) + "\n"
+    def show_ports(self, hostmap):
+        res = ""
+        for port, router, descr in self.port_scoreboard:
+            host = ""
+            for k, v in dict_iteritems(hostmap):
+                if router in v:
+                    host = k
+                    break
+            res += "port %d - %s %s %s\n" % (port, host, router, descr)
+        return res
+
+    def show_shell_set_script(self, hostmap):
+        res = ""
+        for port, router, descr in self.port_scoreboard:
+            host = ""
+            for k, v in dict_iteritems(hostmap):
+                if router in v:
+                    host = k
+                    res += "%s=%s:%d\n" % (descr, host, port)
+                    break
+        return res
+
+    def show_shell_unset_script(self, hostmap):
+        res = ""
+        for port, router, descr in self.port_scoreboard:
+            res += "%s=\n" % (descr)
+        return res
+
 
 
 def conn_host(connector_rtr, listener_rtr, hosts):
@@ -173,10 +198,10 @@ def main(argv):
     def router(name, mode, connection, extra=None):
         config = [
             ('router', {'mode': mode, 'id': name, 'debugDumpFile': 'qddebug-' + name + '.txt'}),
-            ('listener', {'port': ports.get_port("%s listener normal" % name), 'stripAnnotations': 'no'}),
-            ('listener', {'port': ports.get_port("%s listener multiTenant" % name), 'stripAnnotations': 'no',
+            ('listener', {'port': ports.get_port(name, "%s_normal" % name), 'stripAnnotations': 'no'}),
+            ('listener', {'port': ports.get_port(name, "%s_multitenant" % name), 'stripAnnotations': 'no',
                           'multiTenant': 'yes'}),
-            ('listener', {'port': ports.get_port("%s listener route-container" % name), 'stripAnnotations': 'no',
+            ('listener', {'port': ports.get_port(name, "%s_routecontainer" % name), 'stripAnnotations': 'no',
                           'role': 'route-container'}),
             ('linkRoute', {'prefix': '0.0.0.0/link', 'direction': 'in', 'containerId': 'LRC'}),
             ('linkRoute', {'prefix': '0.0.0.0/link', 'direction': 'out', 'containerId': 'LRC'}),
@@ -203,9 +228,9 @@ def main(argv):
     ports = Ports()
 
     # common port numbers
-    inter_router_port = ports.get_port("listener inter_router")
-    edge_port_A = ports.get_port("listener edge A")
-    edge_port_B = ports.get_port("listener edge B")
+    inter_router_port = ports.get_port("", "listener inter_router")
+    edge_port_A = ports.get_port("", "listener edge A")
+    edge_port_B = ports.get_port("", "listener edge B")
 
     # Select host on which each router runs
     hosts = {"taj": ["INT.A", "EA1", "EB1"],
@@ -261,8 +286,21 @@ def main(argv):
         for k, v in dict_iteritems(hosts):
             f.write("Host: %15s runs routers: %s\n" % (k, str(v)))
         f.write("\nPorts:\n\n")
-        f.write(ports.show_ports())
+        f.write(ports.show_ports(hosts))
+
+    # write a shell script that defines variables for port functions
+    name = os.path.join(odir, 'set.sh')
+    with open(name, 'w') as f:
+        f.write("#!/bin/bash\n\n")
+        f.write(ports.show_shell_set_script(hosts))
+
+    # write a shell script that undefines variables for port functions
+    name = os.path.join(odir, 'unset.sh')
+    with open(name, 'w') as f:
+        f.write("#!/bin/bash\n\n")
+        f.write(ports.show_shell_unset_script(hosts))
     return 0
+
 
 
 if __name__ == "__main__":
