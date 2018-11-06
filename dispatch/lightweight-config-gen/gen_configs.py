@@ -147,18 +147,19 @@ class Ports:
     def show_shell_set_script(self, hostmap):
         res = ""
         for port, router, descr in self.port_scoreboard:
-            host = ""
             for k, v in dict_iteritems(hostmap):
                 if router in v:
-                    host = k
-                    res += "%s=%s:%d\n" % (descr, host, port)
+                    res += "%s=%s:%d\n" % (descr, k, port)
                     break
         return res
 
     def show_shell_unset_script(self, hostmap):
         res = ""
         for port, router, descr in self.port_scoreboard:
-            res += "%s=\n" % (descr)
+            for k, v in dict_iteritems(hostmap):
+                if router in v:
+                    res += "unset %s\n" % (descr)
+                    break
         return res
 
 
@@ -233,29 +234,29 @@ def main(argv):
     edge_port_B = ports.get_port("", "listener edge B")
 
     # Select host on which each router runs
-    hosts = {"taj": ["INT.A", "EA1", "EB1"],
-             "ratchet": ["INT.B", "EA2", "EB2"]}
+    hosts = {"taj": ["INTA", "EA1", "EB1"],
+             "ratchet": ["INTB", "EA2", "EB2"]}
 
     # generate router configs
-    router('INT.A', 'interior',
+    router('INTA', 'interior',
            ('listener', {'role': 'inter-router', 'port': inter_router_port}),
            ('listener', {'role': 'edge', 'port': edge_port_A}))
-    router('INT.B', 'interior',
+    router('INTB', 'interior',
            ('connector', {'name': 'connectorToA', 'role': 'inter-router', 'port': inter_router_port,
-                          'host': conn_host('INT.B', 'INT.A', hosts)}),
+                          'host': conn_host('INTB', 'INTA', hosts)}),
            ('listener', {'role': 'edge', 'port': edge_port_B}))
     router('EA1', 'edge',
            ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_A, 'host': conn_host('EA1', 'INT.A', hosts)}))
+            {'name': 'uplink', 'role': 'edge', 'port': edge_port_A, 'host': conn_host('EA1', 'INTA', hosts)}))
     router('EA2', 'edge',
            ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_A, 'host': conn_host('EA2', 'INT.A', hosts)}))
+            {'name': 'uplink', 'role': 'edge', 'port': edge_port_A, 'host': conn_host('EA2', 'INTA', hosts)}))
     router('EB1', 'edge',
            ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_B, 'host': conn_host('EB1', 'INT.B', hosts)}))
+            {'name': 'uplink', 'role': 'edge', 'port': edge_port_B, 'host': conn_host('EB1', 'INTB', hosts)}))
     router('EB2', 'edge',
            ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_B, 'host': conn_host('EB2', 'INT.B', hosts)}))
+            {'name': 'uplink', 'role': 'edge', 'port': edge_port_B, 'host': conn_host('EB2', 'INTB', hosts)}))
 
     # generate start scripts
     for k, v in dict_iteritems(hosts):
@@ -291,13 +292,11 @@ def main(argv):
     # write a shell script that defines variables for port functions
     name = os.path.join(odir, 'set.sh')
     with open(name, 'w') as f:
-        f.write("#!/bin/bash\n\n")
         f.write(ports.show_shell_set_script(hosts))
 
     # write a shell script that undefines variables for port functions
     name = os.path.join(odir, 'unset.sh')
     with open(name, 'w') as f:
-        f.write("#!/bin/bash\n\n")
         f.write(ports.show_shell_unset_script(hosts))
     return 0
 
