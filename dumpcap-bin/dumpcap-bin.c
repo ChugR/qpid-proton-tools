@@ -92,6 +92,9 @@ int main(int argc, char** argv)
         }
         printf("Transfer seq %08d starts at %d, size=%d, offset=%d\n", seq_no, ptr, transfer_size, offset);
 #else
+        if (offset == 1318015) {
+            printf("Break here\n");
+        }
         printf("Performative starts at %d, size=%d, offset=%d\n", ptr, transfer_size, offset);
 #endif
 
