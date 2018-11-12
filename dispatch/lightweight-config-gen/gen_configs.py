@@ -37,6 +37,7 @@ from __future__ import print_function
 
 import datetime
 import os
+import string
 import sys
 import traceback
 
@@ -231,61 +232,30 @@ def main(argv):
     # initialize port pool
     ports = Ports()
 
+    # the router names
+    routers = list(string.ascii_uppercase)
+    n_routers = len(routers)
+
     # common port numbers
-    inter_router_portAB = ports.get_port("", "listener inter_router AB")
-    inter_router_portBC = ports.get_port("", "listener inter_router BC")
-    inter_router_portCD = ports.get_port("", "listener inter_router CD")
-    edge_port_A = ports.get_port("", "listener edge A")
-    edge_port_B = ports.get_port("", "listener edge B")
-    edge_port_C = ports.get_port("", "listener edge C")
-    edge_port_D = ports.get_port("", "listener edge D")
+    r_listener_ports = []
+    for i in range(n_routers):
+        r_listener_ports.append(ports.get_port(routers[i], "%s listener" % routers[i]))
 
     # Select host on which each router runs
-    hosts = {"taj": ["INTA", "INTC", "EA1", "EB1", "EC1", "ED1"],
-             "ratchet": ["INTB", "INTD", "EA2", "EB2", "EC2", "ED2"]}
+    hosts = {"ratchet": routers}
 
     # generate router configs
-    router('INTA', 'interior',
-           [('listener', {'role': 'inter-router', 'port': inter_router_portAB}),
-            ('listener', {'role': 'edge', 'port': edge_port_A})])
-    router('INTB', 'interior',
-           [('listener', {'role': 'inter-router', 'port': inter_router_portBC}),
-            ('connector', {'name': 'connectorToA', 'role': 'inter-router', 'port': inter_router_portAB,
-                          'host': conn_host('INTB', 'INTA', hosts)}),
-            ('listener', {'role': 'edge', 'port': edge_port_B})])
-    router('INTC', 'interior',
-           [('listener', {'role': 'inter-router', 'port': inter_router_portCD}),
-            ('connector', {'name': 'connectorToB', 'role': 'inter-router', 'port': inter_router_portBC,
-                          'host': conn_host('INTC', 'INTB', hosts)}),
-            ('listener', {'role': 'edge', 'port': edge_port_C})])
-    router('INTD', 'interior',
-           [('connector', {'name': 'connectorToC', 'role': 'inter-router', 'port': inter_router_portCD,
-                          'host': conn_host('INTD', 'INTC', hosts)}),
-            ('listener', {'role': 'edge', 'port': edge_port_D})])
-    router('EA1', 'edge',
-           ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_A, 'host': conn_host('EA1', 'INTA', hosts)}))
-    router('EA2', 'edge',
-           ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_A, 'host': conn_host('EA2', 'INTA', hosts)}))
-    router('EB1', 'edge',
-           ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_B, 'host': conn_host('EB1', 'INTB', hosts)}))
-    router('EB2', 'edge',
-           ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_B, 'host': conn_host('EB2', 'INTB', hosts)}))
-    router('EC1', 'edge',
-           ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_C, 'host': conn_host('EC1', 'INTC', hosts)}))
-    router('EC2', 'edge',
-           ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_C, 'host': conn_host('EC2', 'INTC', hosts)}))
-    router('ED1', 'edge',
-           ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_D, 'host': conn_host('ED1', 'INTD', hosts)}))
-    router('ED2', 'edge',
-           ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_D, 'host': conn_host('ED2', 'INTD', hosts)}))
+    # first router
+    router(routers[0], 'interior',
+           [('listener', {'role': 'inter-router', 'port': r_listener_ports[0]}),
+            ('connector', {'name': ('connectorTo%s' % routers[-1]), 'role': 'inter-router', 'port': r_listener_ports[-1],
+                           'host': conn_host(routers[0], routers[-1], hosts)})])
+    # other routers
+    for i in range(1, n_routers):
+        router(routers[i], 'interior',
+               [('listener', {'role': 'inter-router', 'port': r_listener_ports[i]}),
+                ('connector', {'name': ('connectorTo%s' % routers[i-1]), 'role': 'inter-router', 'port': r_listener_ports[i-1],
+                               'host': conn_host(routers[i], routers[i-1], hosts)})])
 
     # generate start scripts
     for k, v in dict_iteritems(hosts):
