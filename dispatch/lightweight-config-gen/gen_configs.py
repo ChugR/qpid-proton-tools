@@ -116,7 +116,7 @@ class Qdrouterd:
         if not default_log:
             self.qconfig.append(
                 (
-                'log', {'module': 'DEFAULT', 'enable': 'info+', 'includeSource': 'true', 'outputFile': name + '.log'}))
+                'log', {'module': 'DEFAULT', 'enable': 'trace+', 'includeSource': 'true', 'outputFile': name + '.log'}))
 
     def get_config(self):
         return str(self.qconfig)
@@ -129,7 +129,7 @@ class Ports:
         self.port_scoreboard = []
 
     def get_port(self, router, description):
-        self.port_scoreboard.append((self.port, router, description))
+        self.port_scoreboard.append((self.port, router, description.replace(' ', '_')))
         self.port += 1
         return self.port - 1
 
@@ -232,16 +232,16 @@ def main(argv):
     ports = Ports()
 
     # common port numbers
-    inter_router_portAB = ports.get_port("", "listener inter_router AB")
-    inter_router_portBC = ports.get_port("", "listener inter_router BC")
-    inter_router_portCD = ports.get_port("", "listener inter_router CD")
+    inter_router_portAB = ports.get_port("", "listener inter_router AB") # B connects to A
+    inter_router_portBC = ports.get_port("", "listener inter_router BC") # C connects to B
+    inter_router_portCD = ports.get_port("", "listener inter_router CD") # D connects to C
     edge_port_A = ports.get_port("", "listener edge A")
     edge_port_B = ports.get_port("", "listener edge B")
     edge_port_C = ports.get_port("", "listener edge C")
     edge_port_D = ports.get_port("", "listener edge D")
 
     # Select host on which each router runs
-    hosts = {"taj": ["INTA", "INTC", "EA1", "EB1", "EC1", "ED1"],
+    hosts = {"taj":     ["INTA", "INTC", "EA1", "EB1", "EC1", "ED1"],
              "ratchet": ["INTB", "INTD", "EA2", "EB2", "EC2", "ED2"]}
 
     # generate router configs
@@ -317,6 +317,15 @@ def main(argv):
             f.write("Host: %15s runs routers: %s\n" % (k, str(v)))
         f.write("\nPorts:\n\n")
         f.write(ports.show_ports(hosts))
+        f.write("\nInterrouter ports:\n\n")
+        f.write("%d : Listen on A, Connect from B\n" % inter_router_portAB)
+        f.write("%d : Listen on B, Connect from C\n" % inter_router_portBC)
+        f.write("%d : Listen on C, Connect from D\n" % inter_router_portCD)
+        f.write("\nEdge ports:\n\n")
+        f.write("%d : Listen on A\n" % edge_port_A)
+        f.write("%d : Listen on B\n" % edge_port_B)
+        f.write("%d : Listen on C\n" % edge_port_C)
+        f.write("%d : Listen on D\n" % edge_port_D)
 
     # write a shell script that defines variables for port functions
     name = os.path.join(odir, 'set.sh')
