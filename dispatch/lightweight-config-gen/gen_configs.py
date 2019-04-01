@@ -25,9 +25,7 @@ Emit config files:
  * Use fixed port numbers
  * Select the host on which each router runs
  * Execute the script to generate the config in timestamped subdirectory
-
- * To clean everything back to scratch:
-   git clean -dfx
+ * Scripts are emitted to start the router networks on multiple hosts
 """
 
 from __future__ import unicode_literals
@@ -112,11 +110,17 @@ class Qdrouterd:
         if not name:
             name = self.qconfig.router_id
         assert name
+        # Set log levels for scraper.
         default_log = [l for l in config if (l[0] == 'log' and l[1]['module'] == 'DEFAULT')]
         if not default_log:
             self.qconfig.append(
                 (
-                'log', {'module': 'DEFAULT', 'enable': 'trace+', 'includeSource': 'true', 'outputFile': name + '.log'}))
+                'log', {'module': 'DEFAULT', 'enable': 'info+', 'outputFile': name + '.log'}))
+        server_log = [l for l in config if (l[0] == 'log' and l[1]['module'] == 'SERVER')]
+        if not server_log:
+            self.qconfig.append(
+                (
+                'log', {'module': 'SERVER', 'enable': 'trace+', 'outputFile': name + '.log'}))
 
     def get_config(self):
         return str(self.qconfig)
@@ -211,9 +215,7 @@ def main(argv):
             ('address', {'prefix': 'closest', 'distribution': 'closest'}),
             ('address', {'prefix': 'spread', 'distribution': 'balanced'}),
             ('address', {'prefix': 'multicast', 'distribution': 'multicast'}),
-            ('address', {'prefix': '0.0.0.0/queue', 'waypoint': 'yes'}),
-            ('log',
-             {'module': 'ROUTER_CORE', 'enable': 'info+', 'includeSource': 'true', 'outputFile': name + '.log'})
+            ('address', {'prefix': '0.0.0.0/queue', 'waypoint': 'yes'})
         ]
 
         if (private_config):
