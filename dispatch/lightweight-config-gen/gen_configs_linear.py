@@ -204,6 +204,7 @@ def main(argv):
                           'multiTenant': 'yes'}),
             ('listener', {'port': ports.get_port(name, "%s_routecontainer" % name), 'stripAnnotations': 'no',
                           'role': 'route-container'}),
+            ('listener', {'port': ports.get_port(name, "%s_http" % name), 'http': 'true'}),
             ('linkRoute', {'prefix': '0.0.0.0/link', 'direction': 'in', 'containerId': 'LRC'}),
             ('linkRoute', {'prefix': '0.0.0.0/link', 'direction': 'out', 'containerId': 'LRC'}),
             ('autoLink', {'addr': '0.0.0.0/queue.waypoint', 'containerId': 'ALC', 'direction': 'in'}),
@@ -241,7 +242,7 @@ def main(argv):
 
     # Select host on which each router runs
     hosts = {"taj": ["INTA", "INTC", "EA1", "EB1", "EC1", "ED1"],
-             "ratchet": ["INTB", "INTD", "EA2", "EB2", "EC2", "ED2"]}
+             "unused": ["INTB", "INTD", "EA2", "EB2", "EC2", "ED2"]}
 
     # generate router configs
     router('INTA', 'interior',
