@@ -199,11 +199,9 @@ def main(argv):
     def router(name, mode, connection, extra=None, extra2=None):
         config = [
             ('router', {'mode': mode, 'id': name, 'debugDumpFile': 'qddebug-' + name + '.txt'}),
-            ('listener', {'port': ports.get_port(name, "%s_normal" % name), 'stripAnnotations': 'no'}),
-            ('listener', {'port': ports.get_port(name, "%s_multitenant" % name), 'stripAnnotations': 'no',
-                          'multiTenant': 'yes'}),
-            ('listener', {'port': ports.get_port(name, "%s_routecontainer" % name), 'stripAnnotations': 'no',
-                          'role': 'route-container'}),
+            ('listener', {'port': ports.get_port(name, "%s_normal" % name)}),
+            ('listener', {'port': ports.get_port(name, "%s_multitenant" % name), 'multiTenant': 'yes'}),
+            ('listener', {'port': ports.get_port(name, "%s_routecontainer" % name),'role': 'route-container'}),
             ('listener', {'port': ports.get_port(name, "%s_http" % name), 'http': 'true'}),
             ('linkRoute', {'prefix': '0.0.0.0/link', 'direction': 'in', 'containerId': 'LRC'}),
             ('linkRoute', {'prefix': '0.0.0.0/link', 'direction': 'out', 'containerId': 'LRC'}),
@@ -215,6 +213,8 @@ def main(argv):
             ('address', {'prefix': '0.0.0.0/queue', 'waypoint': 'yes'}),
             ('log',
              {'module': 'ROUTER_CORE', 'enable': 'info+', 'includeSource': 'true', 'outputFile': name + '.log'}),
+            ('log',
+             {'module': 'HTTP', 'enable': 'trace+', 'includeSource': 'true', 'outputFile': name + '.log'}),
             connection
         ]
 
