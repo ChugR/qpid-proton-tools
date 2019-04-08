@@ -20,14 +20,20 @@
 #
 
 """
-Swiped mostly from qpid-dispatch/tests
-Emit config files:
- * Use fixed port numbers
- * Select the host on which each router runs
- * Execute the script to generate the config in timestamped subdirectory
+This program generates qpid-dispatch router configurations scripts
+and support files.
 
- * To clean everything back to scratch:
-   git clean -dfx
+A network of routers is defined to run on some number of host 
+systems. This program emits:
+ * Start scripts to start the routers on each host
+ * Cleanup scripts to delete run-time artifacts on each host
+ * Shell scripts that define variables for addressing ports on
+   the host systems. [A twelve-router system may have nearly
+   one hundred ports. File set.sh defines logical names for the
+   ports that include the host:port pair. A console user running
+   tests against this router network may then use $EA1_normal
+   and $INTB_normal to target specific ports with no prior 
+   knowledge of the host or port details.]
 """
 
 from __future__ import unicode_literals
@@ -122,7 +128,11 @@ class Qdrouterd:
         return str(self.qconfig)
 
 class Ports:
-    """Dish out port numbers in sequence"""
+    """
+    Dish out port numbers in sequence
+    This function associates a (port, router, description) tuple
+    and uses that information later to describe the router network.
+    """
 
     def __init__(self):
         self.port = 21000
