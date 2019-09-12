@@ -23,6 +23,10 @@
 This program generates qpid-dispatch router configurations scripts
 and support files.
 
+The routers run on two hosts ('taj', and 'unused'). You can change 
+their names in the definitions of the hosts dictionary. Hosts also
+defines which router runs on each host.
+
 A network of routers is defined to run on some number of host 
 systems. This program emits:
  * Start scripts to start the routers on each host
@@ -34,6 +38,24 @@ systems. This program emits:
    tests against this router network may then use $EA1_normal
    and $INTB_normal to target specific ports with no prior 
    knowledge of the host or port details.]
+
+Using this code:
+
+1. Edit hosts and the names of the routers to run on each.
+2. In main define the common and specific configurations for each router.
+3. Run the script.
+4. The configurations will be in a time-of-day named directory.
+5. Scripts produced will be:
+  a. set.sh - a script to be dot sourced to give usable names for ports.
+  b. unset.sh - undo set.sh
+  c. run-taj.sh, run-unused.sh - scripts to launch the routers on your hosts
+     qdrouterd must be installed and available from the command prompt.
+  d. clean-taj.sh clean-unused.sh - remove common per-run output files.
+  e. ps-eaf-forever.sh - script to monitor routers
+6. Run your test
+    simple_send -a $EA1_normal/multicast/q1 -m 1000
+    simple_recv -a $EB2_normal/multicast/q1 -m 1000
+
 """
 
 from __future__ import unicode_literals
@@ -173,7 +195,6 @@ class Ports:
         return res
 
 
-
 def conn_host(connector_rtr, listener_rtr, hosts):
     """
     A router connector is being defined.
@@ -215,8 +236,8 @@ def main(argv):
             ('listener', {'port': ports.get_port(name, "%s_http" % name), 'http': 'true'}),
             ('linkRoute', {'prefix': '0.0.0.0/link', 'direction': 'in', 'containerId': 'LRC'}),
             ('linkRoute', {'prefix': '0.0.0.0/link', 'direction': 'out', 'containerId': 'LRC'}),
-            ('autoLink', {'addr': '0.0.0.0/queue.waypoint', 'containerId': 'ALC', 'direction': 'in'}),
-            ('autoLink', {'addr': '0.0.0.0/queue.waypoint', 'containerId': 'ALC', 'direction': 'out'}),
+            ('autoLink', {'address': '0.0.0.0/queue.waypoint', 'containerId': 'ALC', 'direction': 'in'}),
+            ('autoLink', {'address': '0.0.0.0/queue.waypoint', 'containerId': 'ALC', 'direction': 'out'}),
             ('address', {'prefix': 'closest', 'distribution': 'closest'}),
             ('address', {'prefix': 'spread', 'distribution': 'balanced'}),
             ('address', {'prefix': 'multicast', 'distribution': 'multicast'}),
@@ -251,7 +272,7 @@ def main(argv):
     edge_port_D = ports.get_port("", "listener edge D")
 
     # Select host on which each router runs
-    hosts = {"taj": ["INTA", "INTC", "EA1", "EB1", "EC1", "ED1"],
+    hosts = {"taj":    ["INTA", "INTC", "EA1", "EB1", "EC1", "ED1"],
              "unused": ["INTB", "INTD", "EA2", "EB2", "EC2", "ED2"]}
 
     # generate router configs
