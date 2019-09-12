@@ -23,9 +23,13 @@
 Swiped mostly from qpid-dispatch/tests
 Emit config files:
  * Use fixed port numbers
+   dynamically allocated from some port number
  * Select the host on which each router runs
+   there's a table in main()
  * Execute the script to generate the config in timestamped subdirectory
+   rename that into some meaningful name
  * Scripts are emitted to start the router networks on multiple hosts
+   use the set.sh and unset.sh scripts to locate the ports by name
 """
 
 from __future__ import unicode_literals
@@ -208,6 +212,7 @@ def main(argv):
                           'multiTenant': 'yes'}),
             ('listener', {'port': ports.get_port(name, "%s_routecontainer" % name), 'stripAnnotations': 'no',
                           'role': 'route-container'}),
+            ('listener', {'port': ports.get_port(name, "%s_http" % name), 'http': 'yes'}),
             ('linkRoute', {'prefix': '0.0.0.0/link', 'direction': 'in', 'containerId': 'LRC'}),
             ('linkRoute', {'prefix': '0.0.0.0/link', 'direction': 'out', 'containerId': 'LRC'}),
             ('autoLink', {'addr': '0.0.0.0/queue.waypoint', 'containerId': 'ALC', 'direction': 'in'}),
