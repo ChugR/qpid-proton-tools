@@ -20,16 +20,44 @@
 #
 
 """
-Swiped mostly from qpid-dispatch/tests
-Emit config files:
- * Use fixed port numbers
-   dynamically allocated from some port number
- * Select the host on which each router runs
-   there's a table in main()
- * Execute the script to generate the config in timestamped subdirectory
-   rename that into some meaningful name
- * Scripts are emitted to start the router networks on multiple hosts
-   use the set.sh and unset.sh scripts to locate the ports by name
+nov14 - make two-router-on-same-host setup
+
+This program generates qpid-dispatch router configurations scripts
+and support files.
+
+The routers run on two hosts ('taj', and 'unused'). You can change 
+their names in the definitions of the hosts dictionary. Hosts also
+defines which router runs on each host.
+
+A network of routers is defined to run on some number of host 
+systems. This program emits:
+ * Start scripts to start the routers on each host
+ * Cleanup scripts to delete run-time artifacts on each host
+ * Shell scripts that define variables for addressing ports on
+   the host systems. [A twelve-router system may have nearly
+   one hundred ports. File set.sh defines logical names for the
+   ports that include the host:port pair. A console user running
+   tests against this router network may then use $EA1_normal
+   and $INTB_normal to target specific ports with no prior 
+   knowledge of the host or port details.]
+
+Using this code:
+
+1. Edit hosts and the names of the routers to run on each.
+2. In main define the common and specific configurations for each router.
+3. Run the script.
+4. The configurations will be in a time-of-day named directory.
+5. Scripts produced will be:
+  a. set.sh - a script to be dot sourced to give usable names for ports.
+  b. unset.sh - undo set.sh
+  c. run-taj.sh, run-unused.sh - scripts to launch the routers on your hosts
+     qdrouterd must be installed and available from the command prompt.
+  d. clean-taj.sh clean-unused.sh - remove common per-run output files.
+  e. ps-eaf-forever.sh - script to monitor routers
+6. Run your test
+    simple_send -a $EA1_normal/multicast/q1 -m 1000
+    simple_recv -a $EB2_normal/multicast/q1 -m 1000
+
 """
 
 from __future__ import unicode_literals
@@ -78,7 +106,7 @@ class Qdrouterd:
             return self.sections("router")[0]["id"]
 
         def defaults(self):
-            """Fill in default values in configuration"""
+            """Fill in default values in gconfiguration"""
             for name, props in self:
                 if name in Qdrouterd.Config.DEFAULTS:
                     for n, p in dict_iteritems(Qdrouterd.Config.DEFAULTS[name]):
@@ -114,30 +142,28 @@ class Qdrouterd:
         if not name:
             name = self.qconfig.router_id
         assert name
-        # Set log levels for scraper.
         default_log = [l for l in config if (l[0] == 'log' and l[1]['module'] == 'DEFAULT')]
         if not default_log:
             self.qconfig.append(
                 (
-                'log', {'module': 'DEFAULT', 'enable': 'info+', 'outputFile': name + '.log'}))
-        server_log = [l for l in config if (l[0] == 'log' and l[1]['module'] == 'SERVER')]
-        if not server_log:
-            self.qconfig.append(
-                (
-                'log', {'module': 'SERVER', 'enable': 'trace+', 'outputFile': name + '.log'}))
+                'log', {'module': 'DEFAULT', 'enable': 'info+', 'includeSource': 'true', 'outputFile': name + '.log'}))
 
     def get_config(self):
         return str(self.qconfig)
 
 class Ports:
-    """Dish out port numbers in sequence"""
+    """
+    Dish out port numbers in sequence
+    This function associates a (port, router, description) tuple
+    and uses that information later to describe the router network.
+    """
 
     def __init__(self):
         self.port = 21000
         self.port_scoreboard = []
 
     def get_port(self, router, description):
-        self.port_scoreboard.append((self.port, router, description.replace(' ', '_')))
+        self.port_scoreboard.append((self.port, router, description))
         self.port += 1
         return self.port - 1
 
@@ -169,7 +195,6 @@ class Ports:
                     res += "unset %s\n" % (descr)
                     break
         return res
-
 
 
 def conn_host(connector_rtr, listener_rtr, hosts):
@@ -204,31 +229,34 @@ def main(argv):
         raise  # exit on any error
 
     # configuration common to all routers
-    def router(name, mode, private_config=None):
+    def router(name, mode, connection, extra=None, extra2=None):
         config = [
             ('router', {'mode': mode, 'id': name, 'debugDumpFile': 'qddebug-' + name + '.txt'}),
-            ('listener', {'port': ports.get_port(name, "%s_normal" % name), 'stripAnnotations': 'no'}),
-            ('listener', {'port': ports.get_port(name, "%s_multitenant" % name), 'stripAnnotations': 'no',
-                          'multiTenant': 'yes'}),
-            ('listener', {'port': ports.get_port(name, "%s_routecontainer" % name), 'stripAnnotations': 'no',
-                          'role': 'route-container'}),
-            ('listener', {'port': ports.get_port(name, "%s_http" % name), 'http': 'yes'}),
+            ('listener', {'port': ports.get_port(name, "%s_normal" % name)}),
+            ('listener', {'port': ports.get_port(name, "%s_multitenant" % name), 'multiTenant': 'yes'}),
+            ('listener', {'port': ports.get_port(name, "%s_routecontainer" % name),'role': 'route-container'}),
+            ('listener', {'port': ports.get_port(name, "%s_http" % name), 'http': 'true'}),
             ('linkRoute', {'prefix': '0.0.0.0/link', 'direction': 'in', 'containerId': 'LRC'}),
             ('linkRoute', {'prefix': '0.0.0.0/link', 'direction': 'out', 'containerId': 'LRC'}),
-            ('autoLink', {'addr': '0.0.0.0/queue.waypoint', 'containerId': 'ALC', 'direction': 'in'}),
-            ('autoLink', {'addr': '0.0.0.0/queue.waypoint', 'containerId': 'ALC', 'direction': 'out'}),
+            ('autoLink', {'address': '0.0.0.0/queue.waypoint', 'containerId': 'ALC', 'direction': 'in'}),
+            ('autoLink', {'address': '0.0.0.0/queue.waypoint', 'containerId': 'ALC', 'direction': 'out'}),
             ('address', {'prefix': 'closest', 'distribution': 'closest'}),
             ('address', {'prefix': 'spread', 'distribution': 'balanced'}),
             ('address', {'prefix': 'multicast', 'distribution': 'multicast'}),
-            ('address', {'prefix': '0.0.0.0/queue', 'waypoint': 'yes'})
+            ('address', {'prefix': '0.0.0.0/queue', 'waypoint': 'yes'}),
+            ('log',
+             {'module': 'ROUTER_CORE', 'enable': 'info+', 'includeSource': 'true', 'outputFile': name + '.log'}),
+            ('log',
+             {'module': 'HTTP', 'enable': 'info+', 'includeSource': 'true', 'outputFile': name + '.log'}),
+            ('log',
+             {'module': 'SERVER', 'enable': 'trace+', 'includeSource': 'true', 'outputFile': name + '.log'}),
+            connection
         ]
 
-        if (private_config):
-            if isinstance(private_config, list):
-                for cf in private_config:
-                    config.append(cf)
-            else:
-                config.append(private_config)
+        if extra:
+            config.append(extra)
+        if extra2:
+            config.append(extra2)
         qdr = Qdrouterd(name, config)
         fn = os.path.join(odir, name + '.conf')
         with open(fn, 'w') as f:
@@ -239,43 +267,28 @@ def main(argv):
     ports = Ports()
 
     # common port numbers
-    inter_router_portAB = ports.get_port("", "listener inter_router AB") # B connects to A
-    inter_router_portBC = ports.get_port("", "listener inter_router BC") # C connects to B
-    inter_router_portCD = ports.get_port("", "listener inter_router CD") # D connects to C
+    inter_router_portAB = ports.get_port("", "listener inter_router AB")
+    #inter_router_portBC = ports.get_port("", "listener inter_router BC")
+    #inter_router_portCD = ports.get_port("", "listener inter_router CD")
     edge_port_A = ports.get_port("", "listener edge A")
-    edge_port_A2= ports.get_port("", "listener edge A2")
     edge_port_B = ports.get_port("", "listener edge B")
-    edge_port_C = ports.get_port("", "listener edge C")
-    edge_port_D = ports.get_port("", "listener edge D")
+    #edge_port_C = ports.get_port("", "listener edge C")
+    #edge_port_D = ports.get_port("", "listener edge D")
 
     # Select host on which each router runs
-    hosts = {"taj":     ["INTA", "INTC", "EA1", "EB1", "EC1", "ED1"],
-             "unused":  ["INTB", "INTD", "EA2", "EB2", "EC2", "ED2"]}
+    hosts = {"unused":    ["INTA", "INTB", "EA1", "EB1", "EA2", "EB2"]}
 
     # generate router configs
     router('INTA', 'interior',
-           [('listener', {'role': 'inter-router', 'port': inter_router_portAB}),
-            ('listener', {'role': 'edge', 'port': edge_port_A}),
-            ('listener', {'role': 'edge', 'port': edge_port_A2})])
+           ('listener', {'role': 'inter-router', 'port': inter_router_portAB}),
+           ('listener', {'role': 'edge', 'port': edge_port_A}))
     router('INTB', 'interior',
-           [('listener', {'role': 'inter-router', 'port': inter_router_portBC}),
-            ('connector', {'name': 'connectorToA', 'role': 'inter-router', 'port': inter_router_portAB,
+           ('connector', {'name': 'connectorToA', 'role': 'inter-router', 'port': inter_router_portAB,
                           'host': conn_host('INTB', 'INTA', hosts)}),
-            ('listener', {'role': 'edge', 'port': edge_port_B})])
-    router('INTC', 'interior',
-           [('listener', {'role': 'inter-router', 'port': inter_router_portCD}),
-            ('connector', {'name': 'connectorToB', 'role': 'inter-router', 'port': inter_router_portBC,
-                          'host': conn_host('INTC', 'INTB', hosts)}),
-            ('listener', {'role': 'edge', 'port': edge_port_C})])
-    router('INTD', 'interior',
-           [('connector', {'name': 'connectorToC', 'role': 'inter-router', 'port': inter_router_portCD,
-                          'host': conn_host('INTD', 'INTC', hosts)}),
-            ('listener', {'role': 'edge', 'port': edge_port_D})])
+           ('listener', {'role': 'edge', 'port': edge_port_B}))
     router('EA1', 'edge',
-           [('connector',
-             {'name': 'uplink', 'role': 'edge', 'port': edge_port_A, 'host': conn_host('EA1', 'INTA', hosts)}),
            ('connector',
-             {'name': 'uplink2', 'role': 'edge', 'port': edge_port_A2, 'host': conn_host('EA1', 'INTA', hosts)})])
+            {'name': 'uplink', 'role': 'edge', 'port': edge_port_A, 'host': conn_host('EA1', 'INTA', hosts)}))
     router('EA2', 'edge',
            ('connector',
             {'name': 'uplink', 'role': 'edge', 'port': edge_port_A, 'host': conn_host('EA2', 'INTA', hosts)}))
@@ -285,18 +298,6 @@ def main(argv):
     router('EB2', 'edge',
            ('connector',
             {'name': 'uplink', 'role': 'edge', 'port': edge_port_B, 'host': conn_host('EB2', 'INTB', hosts)}))
-    router('EC1', 'edge',
-           ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_C, 'host': conn_host('EC1', 'INTC', hosts)}))
-    router('EC2', 'edge',
-           ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_C, 'host': conn_host('EC2', 'INTC', hosts)}))
-    router('ED1', 'edge',
-           ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_D, 'host': conn_host('ED1', 'INTD', hosts)}))
-    router('ED2', 'edge',
-           ('connector',
-            {'name': 'uplink', 'role': 'edge', 'port': edge_port_D, 'host': conn_host('ED2', 'INTD', hosts)}))
 
     # generate start scripts
     for k, v in dict_iteritems(hosts):
@@ -328,15 +329,6 @@ def main(argv):
             f.write("Host: %15s runs routers: %s\n" % (k, str(v)))
         f.write("\nPorts:\n\n")
         f.write(ports.show_ports(hosts))
-        f.write("\nInterrouter ports:\n\n")
-        f.write("%d : Listen on A, Connect from B\n" % inter_router_portAB)
-        f.write("%d : Listen on B, Connect from C\n" % inter_router_portBC)
-        f.write("%d : Listen on C, Connect from D\n" % inter_router_portCD)
-        f.write("\nEdge ports:\n\n")
-        f.write("%d : Listen on A\n" % edge_port_A)
-        f.write("%d : Listen on B\n" % edge_port_B)
-        f.write("%d : Listen on C\n" % edge_port_C)
-        f.write("%d : Listen on D\n" % edge_port_D)
 
     # write a shell script that defines variables for port functions
     name = os.path.join(odir, 'set.sh')
