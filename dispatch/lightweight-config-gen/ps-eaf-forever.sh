@@ -4,6 +4,6 @@ while :
 do
     echo .
     date
-    ps -eaf | grep qdr
+    ps -C qdrouterd -O pmem,rsz,vsz,drs
     sleep 1
 done
