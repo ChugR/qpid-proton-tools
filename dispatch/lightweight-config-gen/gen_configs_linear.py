@@ -230,6 +230,7 @@ def main(argv):
     def router(name, mode, connection, extra=None, extra2=None):
         config = [
             ('router', {'mode': mode, 'id': name, 'debugDumpFile': 'qddebug-' + name + '.txt'}),
+            ('policy', {'maxConnections': '500', 'enableVhostPolicy': 'true', 'maxMessageSize': '100000', 'policyDir': '.'}),
             ('listener', {'port': ports.get_port(name, "%s_normal" % name)}),
             ('listener', {'port': ports.get_port(name, "%s_multitenant" % name), 'multiTenant': 'yes'}),
             ('listener', {'port': ports.get_port(name, "%s_routecontainer" % name),'role': 'route-container'}),
