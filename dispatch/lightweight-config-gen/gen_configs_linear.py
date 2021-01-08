@@ -38,6 +38,9 @@ systems. This program emits:
    tests against this router network may then use $EA1_normal
    and $INTB_normal to target specific ports with no prior 
    knowledge of the host or port details.]
+ * 2021-01-07
+   - Add a TCP echo server connector to each router
+   - Add TCP listeners for each router to each router
 
 Using this code:
 
@@ -48,14 +51,15 @@ Using this code:
 5. Scripts produced will be:
   a. set.sh - a script to be dot sourced to give usable names for ports.
   b. unset.sh - undo set.sh
-  c. run-taj.sh, run-unused.sh - scripts to launch the routers on your hosts
-     qdrouterd must be installed and available from the command prompt.
+  c. run-taj.sh, run-unused.sh - scripts to launch the routers on your hosts.
+     'qdrouterd' and 'ECHO_SERVER' must be installed and available from the
+     command prompt.
   d. clean-taj.sh clean-unused.sh - remove common per-run output files.
   e. ps-eaf-forever.sh - script to monitor routers
+  f. emitted script 'stop-taj.sh' kills the routers and servers.
 6. Run your test
     simple_send -a $EA1_normal/multicast/q1 -m 1000
     simple_recv -a $EB2_normal/multicast/q1 -m 1000
-
 """
 
 from __future__ import unicode_literals
@@ -227,10 +231,10 @@ def main(argv):
         raise  # exit on any error
 
     # configuration common to all routers
-    def router(name, mode, connection, extra=None, extra2=None):
+    def router(name, mode, hosts, tcp_echo_server, tcp_listeners, connection, extra=None, extra2=None):
         config = [
             ('router', {'mode': mode, 'id': name, 'debugDumpFile': 'qddebug-' + name + '.txt'}),
-            ('policy', {'maxConnections': '500', 'enableVhostPolicy': 'true', 'maxMessageSize': '100000', 'policyDir': '.'}),
+            ('policy', {'maxConnections': '500', 'enableVhostPolicy': 'false', 'maxMessageSize': '100000', 'policyDir': '.'}),
             ('listener', {'port': ports.get_port(name, "%s_normal" % name)}),
             ('listener', {'port': ports.get_port(name, "%s_multitenant" % name), 'multiTenant': 'yes'}),
             ('listener', {'port': ports.get_port(name, "%s_routecontainer" % name),'role': 'route-container'}),
@@ -254,11 +258,26 @@ def main(argv):
             config.append(extra)
         if extra2:
             config.append(extra2)
+
+        # single connector to this router's echo server
+        config.append( ('tcpConnector', {'host': '127.0.0.1',
+                                         'port': tcp_echo_server[name],
+                                         'address': "ES_" + name,
+                                         'siteId': 'outtaSight'}) )
+
+        # multiple listeners for every router's server
+        for k, v in dict_iteritems(hosts):
+            for rtr_v in v:
+                portname = "%s_%s" % (name, rtr_v)
+                config.append( ('tcpListener', {'host': '127.0.0.1',
+                                                'port': tcp_listeners[portname],
+                                                'address': "ES_" + rtr_v,
+                                                'siteId': 'outtaSight'}))
+
         qdr = Qdrouterd(name, config)
         fn = os.path.join(odir, name + '.conf')
         with open(fn, 'w') as f:
             f.write(qdr.get_config())
-
 
     # initialize port pool
     ports = Ports()
@@ -276,46 +295,61 @@ def main(argv):
     hosts = {"taj":    ["INTA", "INTC", "EA1", "EB1", "EC1", "ED1"],
              "unused": ["INTB", "INTD", "EA2", "EB2", "EC2", "ED2"]}
 
+    # allocate tcp echo server listener ports
+    tcp_echo_server_listener_ports = {}
+    for k, v in dict_iteritems(hosts):
+        for rtr in v:
+            tcp_echo_server_listener_ports[rtr] = ports.get_port(rtr, "Echo_server_listener_" + rtr)
+
+    # allocate tcp adaptor listeners for router to access each server
+    tcp_adaptor_listener_ports = {}
+    for kl, vl in dict_iteritems(hosts):
+        for rtr_vl in vl:
+            for ks, vs in dict_iteritems(hosts):
+                for rtr_vs in vs:
+                    portname = "%s_%s" % (rtr_vl, rtr_vs)
+                    tcp_adaptor_listener_ports[portname] = ports.get_port(rtr_vl, "Echo_listener_" + portname)
+
     # generate router configs
-    router('INTA', 'interior',
+    router('INTA', 'interior', hosts, tcp_echo_server_listener_ports, tcp_adaptor_listener_ports,
            ('listener', {'role': 'inter-router', 'port': inter_router_portAB}),
            ('listener', {'role': 'edge', 'port': edge_port_A}))
-    router('INTB', 'interior',
+    router('INTB', 'interior', hosts, tcp_echo_server_listener_ports, tcp_adaptor_listener_ports,
            ('listener', {'role': 'inter-router', 'port': inter_router_portBC}),
            ('connector', {'name': 'connectorToA', 'role': 'inter-router', 'port': inter_router_portAB,
                           'host': conn_host('INTB', 'INTA', hosts)}),
            ('listener', {'role': 'edge', 'port': edge_port_B}))
-    router('INTC', 'interior',
+    router('INTC', 'interior', hosts, tcp_echo_server_listener_ports, tcp_adaptor_listener_ports,
            ('listener', {'role': 'inter-router', 'port': inter_router_portCD}),
            ('connector', {'name': 'connectorToB', 'role': 'inter-router', 'port': inter_router_portBC,
                           'host': conn_host('INTC', 'INTB', hosts)}),
            ('listener', {'role': 'edge', 'port': edge_port_C}))
-    router('INTD', 'interior',
+    router('INTD', 'interior', hosts, tcp_echo_server_listener_ports, tcp_adaptor_listener_ports,
            ('connector', {'name': 'connectorToC', 'role': 'inter-router', 'port': inter_router_portCD,
                           'host': conn_host('INTD', 'INTC', hosts)}),
            ('listener', {'role': 'edge', 'port': edge_port_D}))
-    router('EA1', 'edge',
+    router('EA1', 'edge', hosts, tcp_echo_server_listener_ports, tcp_adaptor_listener_ports,
            ('connector',
             {'name': 'uplink', 'role': 'edge', 'port': edge_port_A, 'host': conn_host('EA1', 'INTA', hosts)}))
-    router('EA2', 'edge',
+    router('EA2', 'edge', hosts, tcp_echo_server_listener_ports, tcp_adaptor_listener_ports,
            ('connector',
             {'name': 'uplink', 'role': 'edge', 'port': edge_port_A, 'host': conn_host('EA2', 'INTA', hosts)}))
-    router('EB1', 'edge',
+    router('EB1', 'edge', hosts, tcp_echo_server_listener_ports, tcp_adaptor_listener_ports,
            ('connector',
             {'name': 'uplink', 'role': 'edge', 'port': edge_port_B, 'host': conn_host('EB1', 'INTB', hosts)}))
-    router('EB2', 'edge',
+    router('EB2', 'edge', hosts, tcp_echo_server_listener_ports, tcp_adaptor_listener_ports,
            ('connector',
             {'name': 'uplink', 'role': 'edge', 'port': edge_port_B, 'host': conn_host('EB2', 'INTB', hosts)}))
-    router('EC1', 'edge',
+    router('EC1', 'edge', hosts, tcp_echo_server_listener_ports, tcp_adaptor_listener_ports,
            ('connector',
             {'name': 'uplink', 'role': 'edge', 'port': edge_port_C, 'host': conn_host('EC1', 'INTC', hosts)}))
-    router('EC2', 'edge',
+    router('EC2', 'edge', hosts, tcp_echo_server_listener_ports, tcp_adaptor_listener_ports,
            ('connector',
             {'name': 'uplink', 'role': 'edge', 'port': edge_port_C, 'host': conn_host('EC2', 'INTC', hosts)}))
-    router('ED1', 'edge',
+    router('ED1', 'edge', hosts, tcp_echo_server_listener_ports, tcp_adaptor_listener_ports,
            ('connector',
             {'name': 'uplink', 'role': 'edge', 'port': edge_port_D, 'host': conn_host('ED1', 'INTD', hosts)}))
-    router('ED2', 'edge',
+    router('ED2', 'edge', hosts, tcp_echo_server_listener_ports, tcp_adaptor_listener_ports,
            ('connector',
             {'name': 'uplink', 'role': 'edge', 'port': edge_port_D, 'host': conn_host('ED2', 'INTD', hosts)}))
 
@@ -328,6 +362,8 @@ def main(argv):
                 f.write('echo Starting %s\n' % rtr)
                 f.write('qdrouterd -c %s.conf &\n' % rtr)
                 f.write('echo $!\n')
+                f.write('ECHO_SERVER -p %d &\n' % tcp_echo_server_listener_ports[rtr])
+                f.write('echo $!\n')
             os.chmod(name, 0o775)
 
     # generate cleanup scripts
@@ -337,8 +373,12 @@ def main(argv):
             f.write('#!/bin/bash\n')
             for rtr in v:
                 f.write('echo Cleaning %s\n' % rtr)
-                f.write('rm %s.log &\n' % rtr)
-                f.write('rm qddebug-%s.txt &\n' % rtr)
+                f.write('rm %s.log\n' % rtr)
+                f.write('rm qddebug-%s.txt\n' % rtr)
+            f.write('echo Killing *ALL* qdrouterd ...\n')
+            f.write("for pid in `ps -ef | grep qdrouterd | grep .conf | awk '{print $2}'` ; do echo $pid ; kill $pid ; done\n")
+            f.write('echo Killing *ALL* echo servers ...\n')
+            f.write("for pid in `ps -ef | grep ECHO_SERVER | grep python | awk '{print $2}'` ; do echo $pid ; kill $pid ; done\n")
             os.chmod(name, 0o775)
 
     # Show hosts and port number cheat sheet
